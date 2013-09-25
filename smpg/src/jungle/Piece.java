@@ -25,6 +25,8 @@ public class Piece {
 	}
 	
 	public boolean superiorTo(Piece p2){
+		if(p2 == null) return true;
+		
 		//either is trapped
 		if(p2.isTrapped) return true;
 		if(this.isTrapped) return false;
