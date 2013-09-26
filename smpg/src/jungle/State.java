@@ -6,6 +6,12 @@ package jungle;
  * http://en.wikipedia.org/wiki/Jungle_(board_game)
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Arrays;
+
+import com.google.common.base.Objects;
+
 public class State {
 	public static int rows = 9;
 	public static int cols = 7;
@@ -59,10 +65,14 @@ public class State {
 		
 	}
 	public State(Color turn, Piece[][] board, boolean[] mouseInRiver, GameResult gameResult){
-		this.turn = turn;
-		this.board = board;
-		this.mouseInRiver = mouseInRiver;
-		this.gameResult = gameResult;
+		this.turn = checkNotNull(turn);
+		for(int r = 0 ;r < rows; r++){
+			for(int c = 0; c < cols; c++)
+				this.board[r][c] = board[r][c];
+		}
+		this.mouseInRiver[0] = mouseInRiver[0];
+		this.mouseInRiver[1] = mouseInRiver[1];
+		this.gameResult = checkNotNull(gameResult);
 	}
 	
 	public Color getTurn(){
@@ -116,7 +126,7 @@ public class State {
 		turn = turn.getOpposite();
 	}
 	public void setTurn(Color c){
-		turn = c;
+		turn = checkNotNull(c);
 	}
 	public void setPiece(int row, int col, Piece piece){
 		board[row][col] = piece;
@@ -130,5 +140,31 @@ public class State {
 	public void mouseOutofRiver(int num){
 		mouseInRiver[num] = false;
 	}
+	@Override
+	public String toString(){
+		return "State [" 
+				+ "turn=" + turn + ", " 
+				+ "board=" + Arrays.deepToString(board)
+				+ ", mouseInRiver=" + Arrays.toString(mouseInRiver) 
+				+ (gameResult != null ? "gameResult=" + gameResult + ", " : "")
+				+ "]";
+	}
+	
+	@Override
+	public int hashCode(){
+		return Objects.hashCode(turn, Arrays.deepHashCode(board), 
+				Arrays.hashCode(mouseInRiver), gameResult);
+	}
 
+	@Override
+	public boolean equals(Object obj){
+		if(this == obj) return true;
+		if(obj == null) return false;
+		if(!(obj instanceof State)) return false;
+		State other = (State) obj;
+		return Objects.equal(turn, other.turn)
+				&& Objects.equal(board, other.board)
+				&& Objects.equal(mouseInRiver, other.mouseInRiver)
+				&& Objects.equal(gameResult, other.gameResult);
+	}
 }
