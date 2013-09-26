@@ -14,4 +14,8 @@ public enum Color {
 		return this == RED ? BLACK : RED;
 	}
 	
+	@Override
+	public String toString(){
+		return isBlack()?"B":"R";
+	}
 }
