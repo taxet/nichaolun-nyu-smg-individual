@@ -31,10 +31,10 @@ public abstract class AbstractStateChangerTest {
 	
 	public static void assertStatePossible(State state){
 		int[][] piecesCount = new int[2][PieceRank.values().length];
-		for(int r = 0; r < State.rows; r++){
-			for(int c = 0; c < State.cols; c++){
+		for(int r = 0; r < State.ROWS; r++){
+			for(int c = 0; c < State.COLS; c++){
 				if(state.getPiece(r, c) == null) continue;
-				piecesCount[state.getPiece(r, c).getColor().ordinal()][state.getPiece(r, c).getRank().ordinal()] ++;
+				++ piecesCount[state.getPiece(r, c).getColor().ordinal()][state.getPiece(r, c).getRank().ordinal()] ;
 			}
 		}
 		for (Color c: Color.values()){

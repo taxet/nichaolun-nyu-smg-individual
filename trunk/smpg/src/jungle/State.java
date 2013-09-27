@@ -13,15 +13,24 @@ import java.util.Arrays;
 import com.google.common.base.Objects;
 
 public class State {
-	public static int rows = 9;
-	public static int cols = 7;
+	public static final int ROWS = 9;
+	public static final int COLS = 7;
 	
+	private Color turn = Color.RED;
+	private Piece[][] board = new Piece[ROWS][COLS];
+	
+	private boolean[] mouseInRiver = {false, false};
+	
+	private GameResult gameResult;
+	
+	//river0: left river
 	public static boolean inRiver0(int row, int col){
 		return (row==1 || row ==2) && (col == 3 || col == 4 || col == 5);
 	}
 	public static boolean inRiver0(Position p){
 		return inRiver0(p.getRow(), p.getCol());
 	}
+	//river1: right river
 	public static boolean inRiver1(int row, int col){
 		return (row==4 || row ==5) && (col == 3 || col == 4 || col == 5);		
 	}
@@ -35,13 +44,6 @@ public class State {
 		return inRiver(p.getRow(), p.getCol());
 	}
 	
-	private Color turn = Color.RED;
-	private Piece[][] board = new Piece[rows][cols];
-	
-	private boolean[] mouseInRiver = {false, false};
-	
-	private GameResult gameResult;
-	
 	public State(){
 		//set red pieces
 		board[0][0] = new Piece(Color.RED, PieceRank.LION);
@@ -54,20 +56,20 @@ public class State {
 		board[2][6] = new Piece(Color.RED, PieceRank.ELEPHANT);
 		
 		//set black pieces
-		board[8][6] = new Piece(Color.RED, PieceRank.LION);
-		board[8][0] = new Piece(Color.RED, PieceRank.TIGER);
-		board[7][5] = new Piece(Color.RED, PieceRank.DOG);
-		board[7][1] = new Piece(Color.RED, PieceRank.CAT);
-		board[6][6] = new Piece(Color.RED, PieceRank.RAT);
-		board[6][4] = new Piece(Color.RED, PieceRank.LEOPARD);
-		board[6][2] = new Piece(Color.RED, PieceRank.WOLF);
-		board[6][0] = new Piece(Color.RED, PieceRank.ELEPHANT);
+		board[8][6] = new Piece(Color.BLACK, PieceRank.LION);
+		board[8][0] = new Piece(Color.BLACK, PieceRank.TIGER);
+		board[7][5] = new Piece(Color.BLACK, PieceRank.DOG);
+		board[7][1] = new Piece(Color.BLACK, PieceRank.CAT);
+		board[6][6] = new Piece(Color.BLACK, PieceRank.RAT);
+		board[6][4] = new Piece(Color.BLACK, PieceRank.LEOPARD);
+		board[6][2] = new Piece(Color.BLACK, PieceRank.WOLF);
+		board[6][0] = new Piece(Color.BLACK, PieceRank.ELEPHANT);
 		
 	}
 	public State(Color turn, Piece[][] board, boolean[] mouseInRiver, GameResult gameResult){
 		this.turn = checkNotNull(turn);
-		for(int r = 0 ;r < rows; r++){
-			for(int c = 0; c < cols; c++)
+		for(int r = 0 ;r < ROWS; r++){
+			for(int c = 0; c < COLS; c++)
 				this.board[r][c] = board[r][c];
 		}
 		this.mouseInRiver[0] = mouseInRiver[0];
@@ -84,22 +86,27 @@ public class State {
 	public Piece getPiece(Position p){
 		return getPiece(p.getRow(), p.getCol());
 	}
+	//check whether there is a rat in river[riverNum]
+	//riverNum = 1 or 0
 	public boolean ifMouseInRiver(int riverNum){
 		return mouseInRiver[riverNum];
 	}
 	public GameResult getGameResult(){
 		return gameResult;
 	}
+	//get the den's position of the Color in turn
 	public Position getDenofTurnColor(){
 		if (turn == Color.RED) return new Position(0,3);
 		if (turn == Color.BLACK) return new Position(8,3);
 		return null;
 	}
-	public Position getDenofOpposit(){
+	//get the den's position of the opponent's Color
+	public Position getDenofOpponentColor(){
 		if (turn == Color.RED) return new Position(8,3);
 		if (turn == Color.BLACK) return new Position(0,3);
 		return null;
 	}
+	//check a position whether is in red's trap
 	public boolean inRedTrap(int row, int col){
 		if (row == 0 && col == 2) return true;
 		if (row == 1 && col == 3) return true;
@@ -109,6 +116,7 @@ public class State {
 	public boolean inRedTrap(Position p){
 		return inRedTrap(p.getRow(), p.getCol());
 	}
+	//check a position whether is in black's trap
 	public boolean inBlackTrap(int row, int col){
 		if (row == 8 && col == 2) return true;
 		if (row == 7 && col == 3) return true;
@@ -118,6 +126,7 @@ public class State {
 	public boolean inBlackTrap(Position p){
 		return inBlackTrap(p.getRow(), p.getCol());
 	}
+	//check a position whether is in opponent's trap
 	public boolean inOpponentTrap(Position p){
 		return (turn == Color.RED)?inBlackTrap(p):inRedTrap(p);
 	}
@@ -134,12 +143,16 @@ public class State {
 	public void setPiece(Position p, Piece piece){
 		setPiece(p.getRow(), p.getCol(), piece);
 	}
+	//mouse move into a river, num = 1 or 0
 	public void mouseIntoRiver(int num){
 		mouseInRiver[num] = true;
 	}
+	//mouse move out of a river, num = 1 or 0
 	public void mouseOutofRiver(int num){
 		mouseInRiver[num] = false;
 	}
+	
+	
 	@Override
 	public String toString(){
 		return "State [" 
