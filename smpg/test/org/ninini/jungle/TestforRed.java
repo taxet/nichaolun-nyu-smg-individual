@@ -1,16 +1,8 @@
 package org.ninini.jungle;
 
-import org.ninini.jungle.Color;
-import org.ninini.jungle.IllegalMove;
-import org.ninini.jungle.Move;
-import org.ninini.jungle.Piece;
-import org.ninini.jungle.PieceRank;
-import org.ninini.jungle.Position;
-import org.ninini.jungle.State;
-
 import org.junit.Test;
 
-public abstract class TestforRed extends AbstractStateChangerTest {
+public class TestforRed extends AbstractStateChangerTest {
 	
 	@Test
 	public void testRegularMove(){
@@ -119,7 +111,6 @@ public abstract class TestforRed extends AbstractStateChangerTest {
 		State original = new State(Color.RED, board, ratInRiver, null);
 		original.setPiece(2, 1, new Piece(Color.BLACK, PieceRank.ELEPHANT));
 		original.setPiece(2, 2, new Piece(Color.RED, PieceRank.TIGER));
-		original.setPiece(2, 2, new Piece(Color.BLACK, PieceRank.RAT));
 		Move move = new Move(new Position(2, 2),new Position(6, 2));
 		stateChanger.makeMove(original, move);
 	}
@@ -131,7 +122,7 @@ public abstract class TestforRed extends AbstractStateChangerTest {
 		State original = new State(Color.RED, board, ratInRiver, null);
 		original.setPiece(1, 2, new Piece(Color.RED, PieceRank.DOG));
 		original.setPiece(0, 2, new Piece(Color.BLACK, PieceRank.ELEPHANT, true));
-		Move move = new Move(new Position(1, 2),new Position(0, 3));
+		Move move = new Move(new Position(1, 2),new Position(0, 2));
 		stateChanger.makeMove(original, move);
 	}
 	
@@ -243,6 +234,11 @@ public abstract class TestforRed extends AbstractStateChangerTest {
 		original.setPiece(2, 1, new Piece(Color.RED, PieceRank.CAT));
 		Move move = new Move(new Position(2, 1),new Position(3,1));
 		stateChanger.makeMove(original, move);
+	}
+
+	@Override
+	public StateChanger getStateChanger() {
+		return new StateChangerImpl();
 	}
 
 }

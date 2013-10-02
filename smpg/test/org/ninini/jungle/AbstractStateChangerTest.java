@@ -2,13 +2,6 @@ package org.ninini.jungle;
 
 import org.junit.Before;
 
-import org.ninini.jungle.Color;
-import org.ninini.jungle.PieceRank;
-import org.ninini.jungle.State;
-import org.ninini.jungle.StateChanger;
-import org.ninini.jungle.Move;
-import org.ninini.jungle.IllegalMove;
-
 public abstract class AbstractStateChangerTest {
 
 	protected State start;
@@ -39,7 +32,7 @@ public abstract class AbstractStateChangerTest {
 		}
 		for (Color c: Color.values()){
 			for(PieceRank p: PieceRank.values()){
-				check(piecesCount[c.ordinal()][p.ordinal()] == 1, "Only one Piece "+p+" should be in the board for one color.");
+				check(piecesCount[c.ordinal()][p.ordinal()] <= 1, "Only one Piece "+p+" should be in the board for one color.");
 			}
 		}
 	}

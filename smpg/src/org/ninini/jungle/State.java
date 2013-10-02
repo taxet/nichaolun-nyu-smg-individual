@@ -19,20 +19,20 @@ public class State {
 	private Color turn = Color.RED;
 	private Piece[][] board = new Piece[ROWS][COLS];
 	
-	private boolean[] mouseInRiver = {false, false};
+	private boolean[] ratInRiver = {false, false};
 	
 	private GameResult gameResult;
 	
 	//river0: left river
 	public static boolean inRiver0(int row, int col){
-		return (row==1 || row ==2) && (col == 3 || col == 4 || col == 5);
+		return (col == 1 || col == 2) && (row == 3 || row == 4 || row == 5);
 	}
 	public static boolean inRiver0(Position p){
 		return inRiver0(p.getRow(), p.getCol());
 	}
 	//river1: right river
 	public static boolean inRiver1(int row, int col){
-		return (row==4 || row ==5) && (col == 3 || col == 4 || col == 5);		
+		return (col == 4 || col == 5) && (row == 3 || row == 4 || row == 5);		
 	}
 	public static boolean inRiver1(Position p){
 		return inRiver1(p.getRow(), p.getCol());
@@ -66,15 +66,15 @@ public class State {
 		board[6][0] = new Piece(Color.BLACK, PieceRank.ELEPHANT);
 		
 	}
-	public State(Color turn, Piece[][] board, boolean[] mouseInRiver, GameResult gameResult){
+	public State(Color turn, Piece[][] board, boolean[] ratInRiver, GameResult gameResult){
 		this.turn = checkNotNull(turn);
 		for(int r = 0 ;r < ROWS; r++){
 			for(int c = 0; c < COLS; c++)
 				this.board[r][c] = board[r][c];
 		}
-		this.mouseInRiver[0] = mouseInRiver[0];
-		this.mouseInRiver[1] = mouseInRiver[1];
-		this.gameResult = checkNotNull(gameResult);
+		this.ratInRiver[0] = ratInRiver[0];
+		this.ratInRiver[1] = ratInRiver[1];
+		this.gameResult = gameResult;
 	}
 	
 	public Color getTurn(){
@@ -88,8 +88,8 @@ public class State {
 	}
 	//check whether there is a rat in river[riverNum]
 	//riverNum = 1 or 0
-	public boolean ifMouseInRiver(int riverNum){
-		return mouseInRiver[riverNum];
+	public boolean ifRatInRiver(int riverNum){
+		return ratInRiver[riverNum];
 	}
 	public GameResult getGameResult(){
 		return gameResult;
@@ -107,23 +107,23 @@ public class State {
 		return null;
 	}
 	//check a position whether is in red's trap
-	public boolean inRedTrap(int row, int col){
+	public static boolean inRedTrap(int row, int col){
 		if (row == 0 && col == 2) return true;
 		if (row == 1 && col == 3) return true;
 		if (row == 0 && col == 4) return true;
 		else return false;
 	}
-	public boolean inRedTrap(Position p){
+	public static boolean inRedTrap(Position p){
 		return inRedTrap(p.getRow(), p.getCol());
 	}
 	//check a position whether is in black's trap
-	public boolean inBlackTrap(int row, int col){
+	public static boolean inBlackTrap(int row, int col){
 		if (row == 8 && col == 2) return true;
 		if (row == 7 && col == 3) return true;
 		if (row == 8 && col == 4) return true;
 		else return false;		
 	}
-	public boolean inBlackTrap(Position p){
+	public static boolean inBlackTrap(Position p){
 		return inBlackTrap(p.getRow(), p.getCol());
 	}
 	//check a position whether is in opponent's trap
@@ -143,13 +143,13 @@ public class State {
 	public void setPiece(Position p, Piece piece){
 		setPiece(p.getRow(), p.getCol(), piece);
 	}
-	//mouse move into a river, num = 1 or 0
-	public void mouseIntoRiver(int num){
-		mouseInRiver[num] = true;
+	//rat move into a river, num = 1 or 0
+	public void ratIntoRiver(int num){
+		ratInRiver[num] = true;
 	}
-	//mouse move out of a river, num = 1 or 0
-	public void mouseOutofRiver(int num){
-		mouseInRiver[num] = false;
+	//rat move out of a river, num = 1 or 0
+	public void ratOutofRiver(int num){
+		ratInRiver[num] = false;
 	}
 	
 	
@@ -158,7 +158,7 @@ public class State {
 		return "State [" 
 				+ "turn=" + turn + ", " 
 				+ "board=" + Arrays.deepToString(board)
-				+ ", mouseInRiver=" + Arrays.toString(mouseInRiver) 
+				+ ", ratInRiver=" + Arrays.toString(ratInRiver) 
 				+ (gameResult != null ? "gameResult=" + gameResult + ", " : "")
 				+ "]";
 	}
@@ -166,7 +166,7 @@ public class State {
 	@Override
 	public int hashCode(){
 		return Objects.hashCode(turn, Arrays.deepHashCode(board), 
-				Arrays.hashCode(mouseInRiver), gameResult);
+				Arrays.hashCode(ratInRiver), gameResult);
 	}
 
 	@Override
@@ -177,7 +177,7 @@ public class State {
 		State other = (State) obj;
 		return Objects.equal(turn, other.turn)
 				&& Objects.equal(board, other.board)
-				&& Objects.equal(mouseInRiver, other.mouseInRiver)
+				&& Objects.equal(ratInRiver, other.ratInRiver)
 				&& Objects.equal(gameResult, other.gameResult);
 	}
 }
