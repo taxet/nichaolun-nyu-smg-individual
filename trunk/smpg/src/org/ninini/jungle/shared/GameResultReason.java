@@ -1,4 +1,4 @@
-package org.ninini.jungle;
+package org.ninini.jungle.shared;
 
 public enum GameResultReason {
 	ENTER_DEN,

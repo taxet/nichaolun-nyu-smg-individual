@@ -1,6 +1,15 @@
-package org.ninini.jungle;
+package org.ninini.jungle.shared;
 
 import org.junit.Test;
+import org.ninini.jungle.shared.Color;
+import org.ninini.jungle.shared.IllegalMove;
+import org.ninini.jungle.shared.Move;
+import org.ninini.jungle.shared.Piece;
+import org.ninini.jungle.shared.PieceRank;
+import org.ninini.jungle.shared.Position;
+import org.ninini.jungle.shared.State;
+import org.ninini.jungle.shared.StateChanger;
+import org.ninini.jungle.shared.StateChangerImpl;
 
 public class TestforRed extends AbstractStateChangerTest {
 	

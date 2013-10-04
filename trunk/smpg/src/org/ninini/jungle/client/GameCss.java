@@ -1,4 +1,4 @@
-package org.ninini.jungle.client.games;
+package org.ninini.jungle.client;
 
 import com.google.gwt.resources.client.CssResource;
 

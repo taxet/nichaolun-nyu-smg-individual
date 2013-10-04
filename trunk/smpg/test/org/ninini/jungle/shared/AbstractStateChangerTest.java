@@ -1,6 +1,12 @@
-package org.ninini.jungle;
+package org.ninini.jungle.shared;
 
 import org.junit.Before;
+import org.ninini.jungle.shared.Color;
+import org.ninini.jungle.shared.IllegalMove;
+import org.ninini.jungle.shared.Move;
+import org.ninini.jungle.shared.PieceRank;
+import org.ninini.jungle.shared.State;
+import org.ninini.jungle.shared.StateChanger;
 
 public abstract class AbstractStateChangerTest {
 
