@@ -20,7 +20,6 @@
   <!-- Other module inherits                                      -->
 
   <!-- Specify the app entry point class.                         -->
-  <entry-point class='org.ninini.jungle.client.Smpg1'/>
 
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>

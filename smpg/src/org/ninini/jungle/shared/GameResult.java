@@ -1,4 +1,4 @@
-package org.ninini.jungle;
+package org.ninini.jungle.shared;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
