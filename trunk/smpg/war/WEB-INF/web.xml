@@ -9,7 +9,7 @@
   
   <!-- Default page to serve -->
   <welcome-file-list>
-    <welcome-file>Smpg1.html</welcome-file>
+    <welcome-file>jungle.html</welcome-file>
   </welcome-file-list>
 
 </web-app>
