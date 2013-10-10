@@ -3,13 +3,17 @@
     xmlns:g="urn:import:com.google.gwt.user.client.ui">
     <ui:style field="css" type="org.ninini.jungle.client.GameCss">
         .highlighted{
-          outline: dotted green 2px;
+          outline: dotted blue 2px;
+           }
+        .selected{
+          outline: blue 3px;
            }
         td img{
           display: block
            }
     </ui:style>
     <g:HTMLPanel>
+        <g:Label ui:field="whoseTurn" text="Whose turn" />
         <g:Label ui:field="gameStatus" text="Status" />
         <g:Grid ui:field="gameGrid" />
     </g:HTMLPanel>

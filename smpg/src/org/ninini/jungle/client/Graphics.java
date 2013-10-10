@@ -27,12 +27,13 @@ public class Graphics extends Composite implements View {
 	}
 
 	@UiField GameCss css;
+	@UiField Label whoseTurn;
 	@UiField Label gameStatus;
 	@UiField Grid gameGrid;
 	private Image[][] board = new Image[State.ROWS][State.COLS];
 	private Presenter presenter;
 	
-	public Graphics(){
+	public Graphics(){		
 		initWidget(uiBinder.createAndBindUi(this));
 		gameGrid.resize(State.ROWS, State.COLS);
 		gameGrid.setCellPadding(0);
@@ -41,21 +42,20 @@ public class Graphics extends Composite implements View {
 		
 		for(int row = 0; row < State.ROWS; row++){
 			for(int col = 0; col < State.COLS; col++){
-				Image img = new Image();
+				final Image img = new Image();
 				board[row][col] = img;
-				final int i = row;
-				final int j = col;
+				final int rowSelected = row;
+				final int colSelected = col;
 				img.addClickHandler(new ClickHandler(){
 					@Override
 					public void onClick(ClickEvent event){
-						presenter.selectBoard(i, j);
+						presenter.selectBoard(rowSelected, colSelected);
 					}
 				});
 				img.setWidth("100%");
 				gameGrid.setWidget(row, col, img);
 			}
 		}
-		
 	}
 	
 	public Presenter getPresenter(){
@@ -141,22 +141,23 @@ public class Graphics extends Composite implements View {
 	@Override
 	public void setWhoseTurn(Color color) {
 		if(color == Color.BLACK){
-			gameStatus.setText("Black's Turn");
+			whoseTurn.setText("Black's Turn");
 		}else if(color == Color.RED){
-			gameStatus.setText("Red's Turn");
+			whoseTurn.setText("Red's Turn");
 		}else {
-			gameStatus.setText("????'s Turn");
+			whoseTurn.setText("????'s Turn");
 		}
 	}
 
 	@Override
 	public void setGameResult(GameResult gameResult) {
+		if(gameResult == null) return;
 		if(gameResult.getWinner() == Color.BLACK){
-			gameStatus.setText("Black Win");
+			whoseTurn.setText("Black Win");
 		}else if(gameResult.getWinner() == Color.RED){
-			gameStatus.setText("Red Win");
+			whoseTurn.setText("Red Win");
 		}else {
-			gameStatus.setText("???? Win");
+			whoseTurn.setText("???? Win");
 		}
 	}
 	
@@ -184,6 +185,16 @@ public class Graphics extends Composite implements View {
 		else{
 			board[row][col].setResource(gameImages.normalTile());
 		}
+	}
+
+	@Override
+	public void setPresenter(Presenter presenter) {
+		this.presenter = presenter;
+	}
+
+	@Override
+	public void setStatus(String string) {
+		gameStatus.setText(string);
 	}
 
 }

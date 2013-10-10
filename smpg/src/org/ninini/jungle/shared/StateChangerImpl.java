@@ -57,6 +57,7 @@ public class StateChangerImpl implements StateChanger {
 					State.inRiver(move.getTo()) &&
 					!State.inRiver(move.getFrom()))
 				throw new IllegalMove();
+			state.captureEnemyPiece();
 		}
 		
 		if(state.inOpponentTrap(move.getTo())) 
@@ -70,6 +71,23 @@ public class StateChangerImpl implements StateChanger {
 		//rat out of river
 		if(State.inRiver0(move.getFrom()) && !State.inRiver0(move.getTo())) state.ratOutofRiver(0);
 		if(State.inRiver1(move.getFrom()) && !State.inRiver1(move.getTo())) state.ratOutofRiver(1);
+		
+		//determine whether game is over
+		if(state.inOpponentDen(move.getTo())) {
+			Color winner = state.getTurn();
+			GameResultReason reason = GameResultReason.ENTER_DEN;
+			GameResult gameResult = new GameResult(winner, reason);
+			state.setGameResult(gameResult);			
+		}
+		if(state.getRemainingPieces(state.getTurn().getOpposite()) <= 0){
+			Color winner = state.getTurn();
+			GameResultReason reason = GameResultReason.CAPTURE_ALL_PIECES;
+			GameResult gameResult = new GameResult(winner, reason);
+			state.setGameResult(gameResult);
+		}
+		
+		//change turns
+		state.changeTurn();
 	}
 	
 	//check whether p1 and p2 is adjacent
