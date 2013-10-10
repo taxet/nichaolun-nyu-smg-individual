@@ -6,6 +6,7 @@ import java.util.Set;
 import org.ninini.jungle.shared.Color;
 import org.ninini.jungle.shared.GameResult;
 import org.ninini.jungle.shared.GameResultReason;
+import org.ninini.jungle.shared.IllegalMove;
 import org.ninini.jungle.shared.Move;
 import org.ninini.jungle.shared.Piece;
 import org.ninini.jungle.shared.PieceRank;
@@ -31,6 +32,10 @@ public class Presenter {
 		void setWhoseTurn(Color color);
 		//Indicate the game result
 		void setGameResult(GameResult gameResult);
+		//Indicate the presenter
+		void setPresenter(Presenter presenter);
+		//Set the status
+		void setStatus(String string);
 	}
 
 	private View view;
@@ -47,6 +52,7 @@ public class Presenter {
 		possibleMoves = new HashSet<Move>();
 		stateChanger = new StateChangerImpl();
 		stateExplorer = new StateExplorerImpl();
+		selected = null;
 	}
 	
 	public State getState(){
@@ -58,6 +64,7 @@ public class Presenter {
 	
 	public void setView(View view){
 		this.view = view;
+		view.setPresenter(this);
 	}
 	public void setState(State state){
 		this.state = state;
@@ -71,7 +78,7 @@ public class Presenter {
 	}
 	
 	public void selectBoard(int row, int col){
-		if(state.getGameResult() == null) return;
+		if(state.getGameResult() != null) return;
 		if(selected == null){//no piece is selected
 			Position temp = new Position(row,col);
 			if(state.getPiece(temp) != null){
@@ -82,11 +89,18 @@ public class Presenter {
 		}else {//a piece is selected
 			Position moveTo = new Position(row, col);
 			Piece targetPiece = state.getPiece(moveTo);
-			if(targetPiece.getColor() == state.getTurn()){
+			if(targetPiece != null && targetPiece.getColor() == state.getTurn()){
 				newPieceSelected(moveTo);
 			}else{
-				stateChanger.makeMove(state, new Move(selected, moveTo));
-				clearSets();
+				try{
+					stateChanger.makeMove(state, new Move(selected, moveTo));
+					//make changes on graphics
+					clearSets();
+					selected = null;
+					showState();
+				}catch (IllegalMove imove){
+					view.setStatus("Illegal move");
+				}
 			}
 		}
 	}
@@ -146,7 +160,7 @@ public class Presenter {
 	
 	//Creates a string representing all the information in a state.
 	public String serializeState(State state) {
-		char[] stringBuffer = new char[37];
+		char[] stringBuffer = new char[35];
 		//[0] -- who's turn
 		switch(state.getTurn()){
 		case RED: stringBuffer[0] = 'r';
@@ -157,37 +171,31 @@ public class Presenter {
 			break;
 		}
 		
-		//[1:2] ratInRiver flag
-		if(state.ifRatInRiver(0)) stringBuffer[1] = '1';
-		else stringBuffer[1] = '0';
-		if(state.ifRatInRiver(1)) stringBuffer[2] = '1';
-		else stringBuffer[2] = '0';
-		
-		//[3:4] gameResult
+		//[1:2] gameResult
 		if(state.getGameResult() != null){
 			switch (state.getGameResult().getWinner()){
-			case RED: stringBuffer[3] = 'r';
+			case RED: stringBuffer[1] = 'r';
 				break;
-			case BLACK: stringBuffer[3] = 'b';
+			case BLACK: stringBuffer[1] = 'b';
 				break;
 			default :
-				stringBuffer[3] = 'n';
+				stringBuffer[1] = 'n';
 				break;
 			}
 			switch (state.getGameResult().getReason()){
-			case ENTER_DEN : stringBuffer[4] = '1';
+			case ENTER_DEN : stringBuffer[2] = '1';
 				break;
-			case CAPTURE_ALL_PIECES : stringBuffer[4] = '2';
+			case CAPTURE_ALL_PIECES : stringBuffer[2] = '2';
 				break;
-			default: stringBuffer[4] = 'n';
+			default: stringBuffer[2] = 'n';
 				break;
 			}
 		}else{
-			stringBuffer[3] = '0';
-			stringBuffer[4] = '0';
+			stringBuffer[1] = '0';
+			stringBuffer[2] = '0';
 		}
 		
-		//[5:36] piece position
+		//[3:34] piece position
 		//every two char record the position of the piece
 		//(9,9) means the piece is removed from the board
 		//initialize 
@@ -199,74 +207,74 @@ public class Presenter {
 				switch(piece.getRank()){
 				case RAT:
 					if(piece.getColor() == Color.RED){
-						stringBuffer[5] = Character.forDigit(row, 10);
-						stringBuffer[6] = Character.forDigit(col, 10);
+						stringBuffer[3] = Character.forDigit(row, 10);
+						stringBuffer[4] = Character.forDigit(col, 10);
 					}else {
-						stringBuffer[7] = Character.forDigit(row, 10);
-						stringBuffer[8] = Character.forDigit(col, 10);						
+						stringBuffer[5] = Character.forDigit(row, 10);
+						stringBuffer[6] = Character.forDigit(col, 10);						
 					}
 					break;
 				case CAT:
 					if(piece.getColor() == Color.RED){
-						stringBuffer[9] = Character.forDigit(row, 10);
-						stringBuffer[10] = Character.forDigit(col, 10);
+						stringBuffer[7] = Character.forDigit(row, 10);
+						stringBuffer[8] = Character.forDigit(col, 10);
 					}else {
-						stringBuffer[11] = Character.forDigit(row, 10);
-						stringBuffer[12] = Character.forDigit(col, 10);						
+						stringBuffer[9] = Character.forDigit(row, 10);
+						stringBuffer[10] = Character.forDigit(col, 10);						
 					}
 					break;
 				case DOG:
 					if(piece.getColor() == Color.RED){
-						stringBuffer[13] = Character.forDigit(row, 10);
-						stringBuffer[14] = Character.forDigit(col, 10);
+						stringBuffer[11] = Character.forDigit(row, 10);
+						stringBuffer[12] = Character.forDigit(col, 10);
 					}else {
-						stringBuffer[15] = Character.forDigit(row, 10);
-						stringBuffer[16] = Character.forDigit(col, 10);						
+						stringBuffer[13] = Character.forDigit(row, 10);
+						stringBuffer[14] = Character.forDigit(col, 10);						
 					}
 					break;
 				case WOLF:
 					if(piece.getColor() == Color.RED){
-						stringBuffer[17] = Character.forDigit(row, 10);
-						stringBuffer[18] = Character.forDigit(col, 10);
+						stringBuffer[15] = Character.forDigit(row, 10);
+						stringBuffer[16] = Character.forDigit(col, 10);
 					}else {
-						stringBuffer[19] = Character.forDigit(row, 10);
-						stringBuffer[20] = Character.forDigit(col, 10);						
+						stringBuffer[17] = Character.forDigit(row, 10);
+						stringBuffer[18] = Character.forDigit(col, 10);						
 					}
 					break;
 				case LEOPARD:
 					if(piece.getColor() == Color.RED){
-						stringBuffer[21] = Character.forDigit(row, 10);
-						stringBuffer[22] = Character.forDigit(col, 10);
+						stringBuffer[19] = Character.forDigit(row, 10);
+						stringBuffer[20] = Character.forDigit(col, 10);
 					}else {
-						stringBuffer[23] = Character.forDigit(row, 10);
-						stringBuffer[24] = Character.forDigit(col, 10);						
+						stringBuffer[21] = Character.forDigit(row, 10);
+						stringBuffer[22] = Character.forDigit(col, 10);						
 					}
 					break;
 				case TIGER:
 					if(piece.getColor() == Color.RED){
-						stringBuffer[25] = Character.forDigit(row, 10);
-						stringBuffer[26] = Character.forDigit(col, 10);
+						stringBuffer[23] = Character.forDigit(row, 10);
+						stringBuffer[24] = Character.forDigit(col, 10);
 					}else {
-						stringBuffer[27] = Character.forDigit(row, 10);
-						stringBuffer[28] = Character.forDigit(col, 10);						
+						stringBuffer[25] = Character.forDigit(row, 10);
+						stringBuffer[26] = Character.forDigit(col, 10);						
 					}
 					break;
 				case LION:
 					if(piece.getColor() == Color.RED){
-						stringBuffer[29] = Character.forDigit(row, 10);
-						stringBuffer[30] = Character.forDigit(col, 10);
+						stringBuffer[27] = Character.forDigit(row, 10);
+						stringBuffer[28] = Character.forDigit(col, 10);
 					}else {
-						stringBuffer[31] = Character.forDigit(row, 10);
-						stringBuffer[32] = Character.forDigit(col, 10);						
+						stringBuffer[29] = Character.forDigit(row, 10);
+						stringBuffer[30] = Character.forDigit(col, 10);						
 					}
 					break;
 				case ELEPHANT:
 					if(piece.getColor() == Color.RED){
-						stringBuffer[33] = Character.forDigit(row, 10);
-						stringBuffer[34] = Character.forDigit(col, 10);
+						stringBuffer[31] = Character.forDigit(row, 10);
+						stringBuffer[32] = Character.forDigit(col, 10);
 					}else {
-						stringBuffer[35] = Character.forDigit(row, 10);
-						stringBuffer[36] = Character.forDigit(col, 10);						
+						stringBuffer[33] = Character.forDigit(row, 10);
+						stringBuffer[34] = Character.forDigit(col, 10);						
 					}
 					break;
 				default:
@@ -280,6 +288,8 @@ public class Presenter {
 	
 	//Decodes a State encoded by serializeString.
 	public State unserializeState(String serialized){
+		if (serialized == null) return new State();
+		if(serialized.length() != 35) return new State();
 		Color turn = null;
 		switch(serialized.charAt(0)){
 		case 'r': turn = Color.RED;
@@ -289,14 +299,11 @@ public class Presenter {
 		default:
 			break;
 		}
-		boolean[] ratInRiver = {false, false};
-		if(serialized.charAt(1) == '1') ratInRiver[0] = true;
-		if(serialized.charAt(2) == '1') ratInRiver[1] = true;
 		GameResult gameResult = null;
-		if(serialized.charAt(3) != '0' || serialized.charAt(4) != '0'){
+		if(serialized.charAt(1) != '0' || serialized.charAt(2) != '0'){
 			Color winner = null;
 			GameResultReason reason= null;
-			switch(serialized.charAt(3)){
+			switch(serialized.charAt(1)){
 			case 'r':
 				winner = Color.RED;
 				break;
@@ -306,7 +313,7 @@ public class Presenter {
 			default:
 				break;
 			}
-			switch(serialized.charAt(4)){
+			switch(serialized.charAt(2)){
 			case '1':
 				reason = GameResultReason.ENTER_DEN;
 				break;
@@ -322,8 +329,8 @@ public class Presenter {
 		Piece[][] board = new Piece[State.ROWS][State.COLS];
 		//red rat
 		{
-			int row = Character.getNumericValue(serialized.charAt(5));
-			int col = Character.getNumericValue(serialized.charAt(6));
+			int row = charToInt(serialized.charAt(3));
+			int col = charToInt(serialized.charAt(4));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.RAT, true);
@@ -333,8 +340,8 @@ public class Presenter {
 		}
 		//black rat
 		{
-			int row = Character.getNumericValue(serialized.charAt(7));
-			int col = Character.getNumericValue(serialized.charAt(8));
+			int row = charToInt(serialized.charAt(5));
+			int col = charToInt(serialized.charAt(6));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.RAT, true);
@@ -344,8 +351,8 @@ public class Presenter {
 		}
 		//red cat
 		{
-			int row = Character.getNumericValue(serialized.charAt(9));
-			int col = Character.getNumericValue(serialized.charAt(10));
+			int row = charToInt(serialized.charAt(7));
+			int col = charToInt(serialized.charAt(8));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.CAT, true);
@@ -355,8 +362,8 @@ public class Presenter {
 		}
 		//black cat
 		{
-			int row = Character.getNumericValue(serialized.charAt(11));
-			int col = Character.getNumericValue(serialized.charAt(12));
+			int row = charToInt(serialized.charAt(9));
+			int col = charToInt(serialized.charAt(10));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.CAT, true);
@@ -366,8 +373,8 @@ public class Presenter {
 		}
 		//red dog
 		{
-			int row = Character.getNumericValue(serialized.charAt(13));
-			int col = Character.getNumericValue(serialized.charAt(14));
+			int row = charToInt(serialized.charAt(11));
+			int col = charToInt(serialized.charAt(12));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.DOG, true);
@@ -377,8 +384,8 @@ public class Presenter {
 		}
 		//black dog
 		{
-			int row = Character.getNumericValue(serialized.charAt(15));
-			int col = Character.getNumericValue(serialized.charAt(16));
+			int row = charToInt(serialized.charAt(13));
+			int col = charToInt(serialized.charAt(14));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.DOG, true);
@@ -388,8 +395,8 @@ public class Presenter {
 		}
 		//red wolf
 		{
-			int row = Character.getNumericValue(serialized.charAt(17));
-			int col = Character.getNumericValue(serialized.charAt(18));
+			int row = charToInt(serialized.charAt(15));
+			int col = charToInt(serialized.charAt(16));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.WOLF, true);
@@ -399,8 +406,8 @@ public class Presenter {
 		}
 		//black wolf
 		{
-			int row = Character.getNumericValue(serialized.charAt(19));
-			int col = Character.getNumericValue(serialized.charAt(20));
+			int row = charToInt(serialized.charAt(17));
+			int col = charToInt(serialized.charAt(18));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.WOLF, true);
@@ -410,8 +417,8 @@ public class Presenter {
 		}
 		//red leopard
 		{
-			int row = Character.getNumericValue(serialized.charAt(21));
-			int col = Character.getNumericValue(serialized.charAt(22));
+			int row = charToInt(serialized.charAt(19));
+			int col = charToInt(serialized.charAt(20));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.LEOPARD, true);
@@ -421,8 +428,8 @@ public class Presenter {
 		}
 		//black leopard
 		{
-			int row = Character.getNumericValue(serialized.charAt(23));
-			int col = Character.getNumericValue(serialized.charAt(24));
+			int row = charToInt(serialized.charAt(21));
+			int col = charToInt(serialized.charAt(22));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.LEOPARD, true);
@@ -432,8 +439,8 @@ public class Presenter {
 		}
 		//red tiger
 		{
-			int row = Character.getNumericValue(serialized.charAt(25));
-			int col = Character.getNumericValue(serialized.charAt(26));
+			int row = charToInt(serialized.charAt(23));
+			int col = charToInt(serialized.charAt(24));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.TIGER, true);
@@ -443,8 +450,8 @@ public class Presenter {
 		}
 		//black tiger
 		{
-			int row = Character.getNumericValue(serialized.charAt(27));
-			int col = Character.getNumericValue(serialized.charAt(28));
+			int row = charToInt(serialized.charAt(25));
+			int col = charToInt(serialized.charAt(26));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.TIGER, true);
@@ -454,8 +461,8 @@ public class Presenter {
 		}
 		//red lion
 		{
-			int row = Character.getNumericValue(serialized.charAt(29));
-			int col = Character.getNumericValue(serialized.charAt(30));
+			int row = charToInt(serialized.charAt(27));
+			int col = charToInt(serialized.charAt(28));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.LION, true);
@@ -465,8 +472,8 @@ public class Presenter {
 		}
 		//black lion
 		{
-			int row = Character.getNumericValue(serialized.charAt(31));
-			int col = Character.getNumericValue(serialized.charAt(32));
+			int row = charToInt(serialized.charAt(29));
+			int col = charToInt(serialized.charAt(30));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.LION, true);
@@ -476,8 +483,8 @@ public class Presenter {
 		}
 		//red elephant
 		{
-			int row = Character.getNumericValue(serialized.charAt(33));
-			int col = Character.getNumericValue(serialized.charAt(34));
+			int row = charToInt(serialized.charAt(31));
+			int col = charToInt(serialized.charAt(32));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.ELEPHANT, true);
@@ -487,8 +494,8 @@ public class Presenter {
 		}
 		//black elephant
 		{
-			int row = Character.getNumericValue(serialized.charAt(35));
-			int col = Character.getNumericValue(serialized.charAt(36));
+			int row = charToInt(serialized.charAt(33));
+			int col = charToInt(serialized.charAt(34));
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.ELEPHANT, true);
@@ -497,6 +504,24 @@ public class Presenter {
 			}
 		}
 		
-		return new State(turn, board, ratInRiver, gameResult);
+		return new State(turn, board, gameResult);
+	}
+	
+	//char to int
+	private int charToInt(char c){
+		switch(c){
+		case '0': return 0;
+		case '1': return 1;
+		case '2': return 2;
+		case '3': return 3;
+		case '4': return 4;
+		case '5': return 5;
+		case '6': return 6;
+		case '7': return 7;
+		case '8': return 8;
+		case '9': return 9;
+		default: break;
+		}
+		return -1;
 	}
 }

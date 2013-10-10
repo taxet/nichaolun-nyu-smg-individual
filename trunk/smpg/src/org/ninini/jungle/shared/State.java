@@ -20,7 +20,7 @@ public class State {
 	private Piece[][] board = new Piece[ROWS][COLS];
 	
 	private boolean[] ratInRiver = {false, false};
-	
+	private int[] remainingPieces = new int[2]; //0 for red and 1 for black
 	private GameResult gameResult;
 	
 	//river0: left river
@@ -45,6 +45,13 @@ public class State {
 	}
 	
 	public State(){
+		//set who's turn
+		turn = Color.RED;
+		
+		//set rat in river bools
+		ratInRiver[0] = false;
+		ratInRiver[1] = false;
+		
 		//set red pieces
 		board[0][0] = new Piece(Color.RED, PieceRank.LION);
 		board[0][6] = new Piece(Color.RED, PieceRank.TIGER);
@@ -65,15 +72,26 @@ public class State {
 		board[6][2] = new Piece(Color.BLACK, PieceRank.WOLF);
 		board[6][0] = new Piece(Color.BLACK, PieceRank.ELEPHANT);
 		
+		remainingPieces[0] = 8;
+		remainingPieces[1] = 8;		
 	}
-	public State(Color turn, Piece[][] board, boolean[] ratInRiver, GameResult gameResult){
+	public State(Color turn, Piece[][] board, GameResult gameResult){
+		remainingPieces[0] = 0;
+		remainingPieces[1] = 0;		
 		this.turn = checkNotNull(turn);
 		for(int r = 0 ;r < ROWS; r++){
-			for(int c = 0; c < COLS; c++)
+			for(int c = 0; c < COLS; c++){
 				this.board[r][c] = board[r][c];
+				if(board[r][c] != null){
+					//inRiver
+					if(inRiver0(r,c)) ratInRiver[0] = true;
+					if(inRiver1(r,c)) ratInRiver[1] = true;
+					//remaining
+					if(board[r][c].getColor() == Color.RED) remainingPieces[0]++;
+					if(board[r][c].getColor() == Color.BLACK) remainingPieces[1]++; 
+				}
+			}
 		}
-		this.ratInRiver[0] = ratInRiver[0];
-		this.ratInRiver[1] = ratInRiver[1];
 		this.gameResult = gameResult;
 	}
 	
@@ -93,6 +111,11 @@ public class State {
 	}
 	public GameResult getGameResult(){
 		return gameResult;
+	}
+	public int getRemainingPieces(Color c){
+		if(c == Color.RED) return remainingPieces[0];
+		if(c == Color.BLACK) return remainingPieces[1];
+		return 0;
 	}
 	//get the den's position of the Color in turn
 	public Position getDenofTurnColor(){
@@ -123,12 +146,34 @@ public class State {
 		if (row == 8 && col == 4) return true;
 		else return false;		
 	}
+	//check a position whether is in red's trap
 	public static boolean inBlackTrap(Position p){
 		return inBlackTrap(p.getRow(), p.getCol());
+	}
+	public static boolean inRedDen(int row, int col){
+		return (row == 0) && (col == 3);
+	}
+	//check a position whether is in black's den
+	public static boolean inRedDen(Position p){
+		return inRedDen(p.getRow(), p.getCol());
+	}
+	public static boolean inBlackDen(int row, int col){
+		return (row == 8) && (col == 3);
+	}
+	public static boolean inBlackDen(Position p){
+		return inBlackDen(p.getRow(), p.getCol());
 	}
 	//check a position whether is in opponent's trap
 	public boolean inOpponentTrap(Position p){
 		return (turn == Color.RED)?inBlackTrap(p):inRedTrap(p);
+	}
+	//check a position whether is in opponent's den
+	public boolean inOpponentDen(Position p){
+		return (turn == Color.RED)?inBlackDen(p):inRedDen(p);
+	}
+	//check a position whether is in player's den
+	public boolean inPLayerDen(Position p){
+		return (turn == Color.RED)?inRedDen(p):inBlackDen(p);
 	}
 	
 	public void changeTurn(){
@@ -142,6 +187,14 @@ public class State {
 	}
 	public void setPiece(Position p, Piece piece){
 		setPiece(p.getRow(), p.getCol(), piece);
+	}
+	public void setGameResult(GameResult gameResult){
+		this.gameResult = gameResult;
+	}
+	//when capture an enemy's piece
+	public void captureEnemyPiece(){
+		if(turn == Color.RED) remainingPieces[1]--;
+		if(turn == Color.BLACK) remainingPieces[0]--;
 	}
 	//rat move into a river, num = 1 or 0
 	public void ratIntoRiver(int num){

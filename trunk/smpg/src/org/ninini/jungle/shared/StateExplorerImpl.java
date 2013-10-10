@@ -36,7 +36,7 @@ public class StateExplorerImpl implements StateExplorer {
 				Piece targetPiece = state.getPiece(p);
 				if(targetPiece != null){
 					//Can not move to own piece
-					if(targetPiece.getColor() != movingPiece.getColor()) continue;
+					if(targetPiece.getColor() == movingPiece.getColor()) continue;
 					//Can not capture the piece whose rank is superior to it
 					if(!movingPiece.superiorTo(targetPiece)) continue;
 					//Can not capture the piece in water on land 
@@ -73,7 +73,7 @@ public class StateExplorerImpl implements StateExplorer {
 				Piece targetPiece = state.getPiece(p);
 				if(targetPiece != null){
 					//Can not move to own piece
-					if(targetPiece.getColor() != movingPiece.getColor()) continue;
+					if(targetPiece.getColor() == movingPiece.getColor()) continue;
 					//Can not capture the piece whose rank is superior to it
 					if(!movingPiece.superiorTo(targetPiece)) continue;
 				}
@@ -96,7 +96,7 @@ public class StateExplorerImpl implements StateExplorer {
 				Piece targetPiece = state.getPiece(p);
 				if(targetPiece != null){
 					//Can not move to own piece
-					if(targetPiece.getColor() != movingPiece.getColor()) continue;
+					if(targetPiece.getColor() == movingPiece.getColor()) continue;
 					//Can not capture the piece whose rank is superior to it
 					if(!movingPiece.superiorTo(targetPiece)) continue;
 				}
@@ -143,7 +143,7 @@ public class StateExplorerImpl implements StateExplorer {
 		Position left = new Position(p.getRow(),p.getCol()-1);
 		if(!outOfBorder(left))positions.add(left);
 		//right
-		Position right = new Position(p.getRow(),p.getCol()-1);
+		Position right = new Position(p.getRow(),p.getCol()+1);
 		if(!outOfBorder(right))positions.add(right);
 		return positions;
 	}
