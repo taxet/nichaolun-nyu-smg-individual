@@ -229,8 +229,8 @@ public class State {
 		if(!(obj instanceof State)) return false;
 		State other = (State) obj;
 		return Objects.equal(turn, other.turn)
-				&& Objects.equal(board, other.board)
-				&& Objects.equal(ratInRiver, other.ratInRiver)
+				&& Arrays.deepEquals(board, other.board)
+				&& Arrays.equals(ratInRiver, other.ratInRiver)
 				&& Objects.equal(gameResult, other.gameResult);
 	}
 }
