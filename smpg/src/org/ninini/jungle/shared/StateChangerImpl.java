@@ -46,17 +46,12 @@ public class StateChangerImpl implements StateChanger {
 			throw new IllegalMove();
 		else if (attackedPiece != null){//capture
 			if(!movingPiece.superiorTo(attackedPiece)) throw new IllegalMove();
-			state.setPiece(move.getTo(), null);
 			//rat in river cannot capture animals on land
-			if((movingPiece.getRank() == PieceRank.RAT) && 
-					State.inRiver(move.getFrom()) &&
-					!State.inRiver(move.getTo()))
-				throw new IllegalMove();
 			//rat on land cannot capture animals in river
 			if((movingPiece.getRank() == PieceRank.RAT) && 
-					State.inRiver(move.getTo()) &&
-					!State.inRiver(move.getFrom()))
+					( State.inRiver(move.getFrom()) != State.inRiver(move.getTo()) )  )
 				throw new IllegalMove();
+			state.setPiece(move.getTo(), null);
 			state.captureEnemyPiece();
 		}
 		

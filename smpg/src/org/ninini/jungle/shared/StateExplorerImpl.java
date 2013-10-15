@@ -18,11 +18,29 @@ public class StateExplorerImpl implements StateExplorer {
 	@Override
 	public Set<Move> getPossibleMovesFromPosition(State state, Position start) {
 		Set<Move> moves = new HashSet<Move>();
+
 		if (state.getGameResult() != null)
 			return moves;
+
+		//Check if the start position is a possible start position
 		
-		if (!getPossibleStartPositions(state).contains(start))
-			return moves;
+		/*
+		boolean inPossibleStartPositions = false;
+		for (Position p : getPossibleStartPositions(state)){
+			//TODO delete after debugging
+			System.err.println(p.toString());
+			if (p.getRow() == start.getRow() && p.getCol() == start.getCol()) {
+				//TODO delete after debugging
+				System.err.println("equals");
+				inPossibleStartPositions = true;
+				break;
+			}
+			//TODO delete after debugging
+			System.err.println("not equal");
+		}
+		if(!inPossibleStartPositions) return moves;*/
+		
+		if(!getPossibleStartPositions(state).contains(start)) return moves;
 		
 		Piece movingPiece = state.getPiece(start);
 		//rat
@@ -172,11 +190,11 @@ public class StateExplorerImpl implements StateExplorer {
 			return new Position(5,0);
 		//vertical
 		if(p.getCol() == 1 && p.getRow() == 2)
-			return new Position(1,6);
+			return new Position(6,1);
 		if(p.getCol() == 1 && p.getRow() == 6)
-			return new Position(1,2);
+			return new Position(2,1);
 		if(p.getCol() == 2 && p.getRow() == 2)
-			return new Position(2,6);
+			return new Position(6,2);
 		if(p.getCol() == 2 && p.getRow() == 6)
 			return new Position(2,2);
 		
@@ -199,13 +217,13 @@ public class StateExplorerImpl implements StateExplorer {
 			return new Position(5,6);
 		//vertical
 		if(p.getCol() == 4 && p.getRow() == 2)
-			return new Position(4,6);
+			return new Position(6,4);
 		if(p.getCol() == 4 && p.getRow() == 6)
-			return new Position(4,2);
+			return new Position(2,4);
 		if(p.getCol() == 5 && p.getRow() == 2)
-			return new Position(5,6);
+			return new Position(6,5);
 		if(p.getCol() == 5 && p.getRow() == 6)
-			return new Position(5,2);
+			return new Position(2,5);
 		
 		
 		return null;

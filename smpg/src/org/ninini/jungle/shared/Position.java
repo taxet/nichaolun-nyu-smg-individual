@@ -38,7 +38,7 @@ public class Position {
 		if(obj == null) return false;
 		if(!(obj instanceof Position)) return false;
 		Position other = (Position) obj;
-		return Objects.equal(row, other.col)
-				&& Objects.equal(row, other.col);
+		return Objects.equal(row, other.row)
+				&& Objects.equal(col, other.col);
 	}
 }
