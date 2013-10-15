@@ -33,10 +33,11 @@ public class Piece {
 		
 		//either is trapped
 		if(p2.isTrapped) return true;
-		if(this.isTrapped) return false;
+		//if(this.isTrapped) return false;
 		
 		//rat is superior to elephant
 		if(this.getRank().getRank() == 1 && p2.getRank().getRank() == 8) return true;
+		if(this.getRank().getRank() == 8 && p2.getRank().getRank() == 1) return false;
 		
 		//other situation
 		return this.getRank().getRank() >= p2.getRank().getRank();

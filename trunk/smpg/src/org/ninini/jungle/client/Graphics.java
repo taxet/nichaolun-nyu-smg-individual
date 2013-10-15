@@ -196,5 +196,15 @@ public class Graphics extends Composite implements View {
 	public void setStatus(String string) {
 		gameStatus.setText(string);
 	}
+	
+	@Override
+	public void setSelected(int row, int col, boolean selected){
+		Element element = board[row][col].getElement();
+		if(selected){
+			element.setClassName(css.selected());
+		}else{
+			element.removeClassName(css.selected());
+		}
+	}
 
 }

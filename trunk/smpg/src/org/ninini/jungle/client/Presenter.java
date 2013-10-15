@@ -36,6 +36,8 @@ public class Presenter {
 		void setPresenter(Presenter presenter);
 		//Set the status
 		void setStatus(String string);
+		//Turns the selected on or off at this shell
+		void setSelected(int row, int col, boolean selected);
 	}
 
 	private View view;
@@ -77,7 +79,7 @@ public class Presenter {
 		}
 	}
 	
-	public void selectBoard(int row, int col){
+	public void selectBoard(int row, int col){		
 		if(state.getGameResult() != null) return;
 		if(selected == null){//no piece is selected
 			Position temp = new Position(row,col);
@@ -96,19 +98,20 @@ public class Presenter {
 					stateChanger.makeMove(state, new Move(selected, moveTo));
 					//make changes on graphics
 					clearSets();
+					view.setSelected(selected.getRow(), selected.getCol(), false);
 					selected = null;
 					showState();
 				}catch (IllegalMove imove){
-					view.setStatus("Illegal move");
 				}
 			}
 		}
 	}
 	//Select a new piece to move
 	private void newPieceSelected(Position p){
-		selected = p;
 		clearSets();
-		highlightedPositions.add(selected);
+		if(selected != null) view.setSelected(selected.getRow(), selected.getCol(), false);
+		selected = p;
+		view.setSelected(selected.getRow(), selected.getCol(), true);
 		possibleMoves.addAll(stateExplorer.getPossibleMovesFromPosition(state, selected));
 		for(Move move : possibleMoves){
 			highlightedPositions.add(move.getTo());
@@ -116,6 +119,8 @@ public class Presenter {
 		for(Position highlightedp : highlightedPositions){
 			view.setHighlighted(highlightedp.getRow(), highlightedp.getCol(), true);
 		}		
+		//TODO delete after debugging
+		view.setStatus("possible moves:"+possibleMoves.size());
 	}
 	//Clear all hightlighted positions and possible moves
 	private void clearSets(){
@@ -135,6 +140,7 @@ public class Presenter {
 		for(int row = 0; row < State.ROWS; row++){
 			for(int col = 0; col < State.COLS; col++){
 				view.setHighlighted(row, col, false);
+				view.setSelected(row, col, false);
 				view.setPiece(row, col, state.getPiece(row, col));
 			}
 		}
@@ -142,7 +148,7 @@ public class Presenter {
 		//If game is over
 		if(state.getGameResult() != null){
 			view.setGameResult(state.getGameResult());
-		}
+		}		
 	}
 	
 	//Create a valueChangeHnader responsible for record browser history

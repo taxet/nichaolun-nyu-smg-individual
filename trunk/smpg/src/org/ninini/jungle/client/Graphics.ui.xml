@@ -6,7 +6,7 @@
           outline: dotted blue 2px;
            }
         .selected{
-          outline: blue 3px;
+          outline: solid blue 3px;
            }
         td img{
           display: block
@@ -14,7 +14,7 @@
     </ui:style>
     <g:HTMLPanel>
         <g:Label ui:field="whoseTurn" text="Whose turn" />
-        <g:Label ui:field="gameStatus" text="Status" />
+        <g:Label ui:field="gameStatus" text="" />
         <g:Grid ui:field="gameGrid" />
     </g:HTMLPanel>
 </ui:UiBinder>
