@@ -205,11 +205,12 @@ public class Presenter {
 		//every two char record the position of the piece
 		//(9,9) means the piece is removed from the board
 		//initialize 
-		for(int i = 5; i < 37; i++)
+		for(int i = 5; i < 35; i++)
 			stringBuffer[i] = '9';
 		for(int row = 0; row < State.ROWS; row++){
 			for(int col = 0; col < State.COLS; col++){
 				Piece piece = state.getPiece(row, col);
+				if (piece == null) continue;
 				switch(piece.getRank()){
 				case RAT:
 					if(piece.getColor() == Color.RED){
@@ -303,7 +304,7 @@ public class Presenter {
 		case 'b': turn = Color.BLACK;
 			break;
 		default:
-			break;
+			return new State();
 		}
 		GameResult gameResult = null;
 		if(serialized.charAt(1) != '0' || serialized.charAt(2) != '0'){
@@ -317,7 +318,7 @@ public class Presenter {
 				winner = Color.BLACK;
 				break;
 			default:
-				break;
+				return new State();
 			}
 			switch(serialized.charAt(2)){
 			case '1':
@@ -327,7 +328,7 @@ public class Presenter {
 				reason = GameResultReason.CAPTURE_ALL_PIECES;
 				break;
 			default:
-				break;
+				return new State();
 			}
 			gameResult = new GameResult(winner, reason);
 		}
@@ -337,6 +338,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(3));
 			int col = charToInt(serialized.charAt(4));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.RAT, true);
@@ -348,6 +350,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(5));
 			int col = charToInt(serialized.charAt(6));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.RAT, true);
@@ -359,6 +362,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(7));
 			int col = charToInt(serialized.charAt(8));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.CAT, true);
@@ -370,6 +374,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(9));
 			int col = charToInt(serialized.charAt(10));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.CAT, true);
@@ -381,6 +386,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(11));
 			int col = charToInt(serialized.charAt(12));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.DOG, true);
@@ -392,6 +398,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(13));
 			int col = charToInt(serialized.charAt(14));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.DOG, true);
@@ -403,6 +410,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(15));
 			int col = charToInt(serialized.charAt(16));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.WOLF, true);
@@ -414,6 +422,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(17));
 			int col = charToInt(serialized.charAt(18));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.WOLF, true);
@@ -425,6 +434,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(19));
 			int col = charToInt(serialized.charAt(20));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.LEOPARD, true);
@@ -436,6 +446,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(21));
 			int col = charToInt(serialized.charAt(22));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.LEOPARD, true);
@@ -447,6 +458,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(23));
 			int col = charToInt(serialized.charAt(24));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.TIGER, true);
@@ -458,6 +470,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(25));
 			int col = charToInt(serialized.charAt(26));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.TIGER, true);
@@ -469,6 +482,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(27));
 			int col = charToInt(serialized.charAt(28));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.LION, true);
@@ -480,6 +494,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(29));
 			int col = charToInt(serialized.charAt(30));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.LION, true);
@@ -491,6 +506,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(31));
 			int col = charToInt(serialized.charAt(32));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inBlackTrap(row, col))
 					board[row][col] = new Piece(Color.RED, PieceRank.ELEPHANT, true);
@@ -502,6 +518,7 @@ public class Presenter {
 		{
 			int row = charToInt(serialized.charAt(33));
 			int col = charToInt(serialized.charAt(34));
+			if(row == -1 || col == -1) return new State();
 			if(row < State.ROWS && col < State.COLS){
 				if(State.inRedTrap(row, col))
 					board[row][col] = new Piece(Color.BLACK, PieceRank.ELEPHANT, true);
