@@ -3,12 +3,16 @@ package org.ninini.jungle.client;
 import org.ninini.jungle.client.Presenter.View;
 import org.ninini.jungle.shared.Color;
 import org.ninini.jungle.shared.GameResult;
+import org.ninini.jungle.shared.Move;
 import org.ninini.jungle.shared.Piece;
 import org.ninini.jungle.shared.State;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.AudioElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.media.client.Audio;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Element;
@@ -20,6 +24,7 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class Graphics extends Composite implements View {
 	private static GameImages gameImages = GWT.create(GameImages.class);
+	private static GameSounds gameSound = GWT.create(GameSounds.class);
 	private static GraphicsUiBinder uiBinder = GWT.create(GraphicsUiBinder.class);
 
 	interface GraphicsUiBinder extends UiBinder<Widget, Graphics>{
@@ -32,6 +37,8 @@ public class Graphics extends Composite implements View {
 	@UiField Grid gameGrid;
 	private Image[][] board = new Image[State.ROWS][State.COLS];
 	private Presenter presenter;
+	
+	private PieceMovingAnimation animation;
 	
 	public Graphics(){		
 		initWidget(uiBinder.createAndBindUi(this));
@@ -56,6 +63,7 @@ public class Graphics extends Composite implements View {
 				gameGrid.setWidget(row, col, img);
 			}
 		}
+		
 	}
 	
 	public Presenter getPresenter(){
@@ -65,67 +73,8 @@ public class Graphics extends Composite implements View {
 	@Override
 	public void setPiece(int row, int col, Piece piece) {
 		if(piece == null){
-			setBoardWithoutPiece(row, col);
-		}else switch(piece.getRank()){
-		case RAT :
-			if(piece.getColor() == Color.RED){
-				board[row][col].setResource(gameImages.redRat());
-			}else{
-				board[row][col].setResource(gameImages.blackRat());
-			}
-			break;
-		case CAT :
-			if(piece.getColor() == Color.RED){
-				board[row][col].setResource(gameImages.redCat());
-			}else{
-				board[row][col].setResource(gameImages.blackCat());
-			}
-			break;
-		case DOG :
-			if(piece.getColor() == Color.RED){
-				board[row][col].setResource(gameImages.redDog());
-			}else{
-				board[row][col].setResource(gameImages.blackDog());
-			}
-			break;
-		case WOLF :
-			if(piece.getColor() == Color.RED){
-				board[row][col].setResource(gameImages.redWolf());
-			}else{
-				board[row][col].setResource(gameImages.blackWolf());
-			}
-			break;
-		case LEOPARD :
-			if(piece.getColor() == Color.RED){
-				board[row][col].setResource(gameImages.redLeopard());
-			}else{
-				board[row][col].setResource(gameImages.blackLeopard());
-			}
-			break;
-		case TIGER :
-			if(piece.getColor() == Color.RED){
-				board[row][col].setResource(gameImages.redTiger());
-			}else{
-				board[row][col].setResource(gameImages.blackTiger());
-			}
-			break;
-		case LION :
-			if(piece.getColor() == Color.RED){
-				board[row][col].setResource(gameImages.redLion());
-			}else{
-				board[row][col].setResource(gameImages.blackLion());
-			}
-			break;
-		case ELEPHANT :
-			if(piece.getColor() == Color.RED){
-				board[row][col].setResource(gameImages.redElephant());
-			}else{
-				board[row][col].setResource(gameImages.blackElephant());
-			}
-			break;
-		default:
-			break;
-		}
+			board[row][col].setResource(getBoardWithoutPiece(row, col));
+		}else board[row][col].setResource(getPieceImage(piece));
 	}
 
 	@Override
@@ -159,31 +108,94 @@ public class Graphics extends Composite implements View {
 		}else {
 			whoseTurn.setText("???? Win");
 		}
+		
+		//play victory sound
+		Audio audio;
+		if(Audio.isSupported()){
+			audio = Audio.createIfSupported();
+		} else return;
+		audio.addSource(gameSound.victorySound().getSafeUri().asString(), AudioElement.TYPE_OGG);
+		audio.play();
 	}
 	
-	//Set a block in board without piece on it
-	private void setBoardWithoutPiece(int row, int col){
+	//Get a block in board without piece on it
+	private ImageResource getBoardWithoutPiece(int row, int col){
 		//river
 		if (State.inRiver(row, col)){
-			board[row][col].setResource(gameImages.riverTile());
+			return gameImages.riverTile();
 		}
 		//den
 		else if ( col == 3 && row == 0 ){
-			board[row][col].setResource(gameImages.redDen());
+			return gameImages.redDen();
 		}
 		else if ( col == 3 && row == 8 ){
-			board[row][col].setResource(gameImages.blackDen());
+			return gameImages.blackDen();
 		}
 		//trap
 		else if(State.inRedTrap(row, col)){
-			board[row][col].setResource(gameImages.redTrap());
+			return gameImages.redTrap();
 		}
 		else if (State.inBlackTrap(row, col)){
-			board[row][col].setResource(gameImages.blackTrap());			
+			return gameImages.blackTrap();			
 		}
 		//else
 		else{
-			board[row][col].setResource(gameImages.normalTile());
+			return gameImages.normalTile();
+		}
+	}
+	
+	private ImageResource getPieceImage(Piece piece){
+		switch(piece.getRank()){
+		case RAT :
+			if(piece.getColor() == Color.RED){
+				return gameImages.redRat();
+			}else{
+				return gameImages.blackRat();
+			}
+		case CAT :
+			if(piece.getColor() == Color.RED){
+				return gameImages.redCat();
+			}else{
+				return gameImages.blackCat();
+			}
+		case DOG :
+			if(piece.getColor() == Color.RED){
+				return gameImages.redDog();
+			}else{
+				return gameImages.blackDog();
+			}
+		case WOLF :
+			if(piece.getColor() == Color.RED){
+				return gameImages.redWolf();
+			}else{
+				return gameImages.blackWolf();
+			}
+		case LEOPARD :
+			if(piece.getColor() == Color.RED){
+				return gameImages.redLeopard();
+			}else{
+				return gameImages.blackLeopard();
+			}
+		case TIGER :
+			if(piece.getColor() == Color.RED){
+				return gameImages.redTiger();
+			}else{
+				return gameImages.blackTiger();
+			}
+		case LION :
+			if(piece.getColor() == Color.RED){
+				return gameImages.redLion();
+			}else{
+				return gameImages.blackLion();
+			}
+		case ELEPHANT :
+			if(piece.getColor() == Color.RED){
+				return gameImages.redElephant();
+			}else{
+				return gameImages.blackElephant();
+			}
+		default:
+			return null;
 		}
 	}
 
@@ -205,6 +217,61 @@ public class Graphics extends Composite implements View {
 		}else{
 			element.removeClassName(css.selected());
 		}
+	}
+
+	@Override
+	public void playSoundWhenSelectPiece(Piece piece) {
+		Audio audio;
+		if(Audio.isSupported()){
+			audio = Audio.createIfSupported();
+		} else return;
+		switch(piece.getRank()){
+		case RAT:
+			break;
+		case CAT: audio.addSource(gameSound.catSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
+				audio.play();
+			break;
+		case DOG: audio.addSource(gameSound.dogSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
+				audio.play();
+			break;
+		case WOLF: audio.addSource(gameSound.wolfSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
+				audio.play();
+			break;
+		case LEOPARD:
+			break;
+		case LION:
+			break;
+		case TIGER:
+			break;
+		case ELEPHANT:
+			break;
+		default:
+			
+		}
+	}
+
+	@Override
+	public void playAnimation(Move move,Piece startPiece, boolean capture) {
+		Image startImage = board[move.getFrom().getRow()][move.getFrom().getCol()];
+		Image endImage = board[move.getTo().getRow()][move.getTo().getCol()];
+		ImageResource pieceImage = getPieceImage(startPiece);
+		ImageResource blankImageRes = getBoardWithoutPiece(move.getFrom().getRow(),move.getFrom().getCol());
+		Audio audio = null;
+		if(Audio.isSupported()){
+			audio = Audio.createIfSupported();
+			if(capture)
+				audio.addSource(gameSound.captureSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
+			else if(State.inRiver(move.getTo()))
+				audio.addSource(gameSound.ennterWaterSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
+			else if(State.inRiver(move.getFrom()) && !State.inRiver(move.getTo()))
+				audio.addSource(gameSound.landingSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
+			else if(presenter.getState().inOpponentTrap(move.getTo()))
+				audio.addSource(gameSound.enterTrapSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
+			else 
+				audio.addSource(gameSound.moveSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
+		}
+		animation = new PieceMovingAnimation(startImage, endImage, pieceImage, blankImageRes, audio);
+		animation.run(1000);
 	}
 
 }
