@@ -38,6 +38,10 @@ public class Presenter {
 		void setStatus(String string);
 		//Turns the selected on or off at this shell
 		void setSelected(int row, int col, boolean selected);
+		//Play sound when selecting a piece
+		void playSoundWhenSelectPiece(Piece piece);
+		//play animation
+		void playAnimation(Move move,Piece startPiece, boolean capture);
 	}
 
 	private View view;
@@ -95,7 +99,12 @@ public class Presenter {
 				newPieceSelected(moveTo);
 			}else{
 				try{
-					stateChanger.makeMove(state, new Move(selected, moveTo));
+					Piece startPiece = state.getPiece(selected);
+					boolean capture = state.getPiece(moveTo) != null;
+					Move move = new Move(selected, moveTo);
+					stateChanger.makeMove(state, move);
+					//play animation
+					view.playAnimation(move, startPiece, capture);
 					//make changes on graphics
 					clearSets();
 					view.setSelected(selected.getRow(), selected.getCol(), false);
@@ -118,9 +127,8 @@ public class Presenter {
 		}
 		for(Position highlightedp : highlightedPositions){
 			view.setHighlighted(highlightedp.getRow(), highlightedp.getCol(), true);
-		}		
-		//TODO delete after debugging
-		view.setStatus("possible moves:"+possibleMoves.size());
+		}
+		view.playSoundWhenSelectPiece(state.getPiece(p));
 	}
 	//Clear all hightlighted positions and possible moves
 	private void clearSets(){
