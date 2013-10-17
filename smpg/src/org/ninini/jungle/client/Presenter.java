@@ -51,7 +51,7 @@ public class Presenter {
 	private Set<Position> highlightedPositions;
 	private Set<Move> possibleMoves;
 	private Position selected;
-	
+
 	public Presenter(){
 		state = new State();
 		highlightedPositions = new HashSet<Position>();
@@ -59,6 +59,17 @@ public class Presenter {
 		stateChanger = new StateChangerImpl();
 		stateExplorer = new StateExplorerImpl();
 		selected = null;
+		initializeHistory();
+	}
+	public Presenter(View view){
+		state = new State();
+		highlightedPositions = new HashSet<Position>();
+		possibleMoves = new HashSet<Move>();
+		stateChanger = new StateChangerImpl();
+		stateExplorer = new StateExplorerImpl();
+		selected = null;
+		setView(view);
+		initializeHistory();
 	}
 	
 	public State getState(){
@@ -72,6 +83,7 @@ public class Presenter {
 		this.view = view;
 		view.setPresenter(this);
 	}
+	
 	public void setState(State state){
 		this.state = state;
 		view.setGameResult(state.getGameResult());
@@ -106,7 +118,6 @@ public class Presenter {
 					//play animation
 					view.playAnimation(move, startPiece, capture);
 					//make changes on graphics
-					clearSets();
 					view.setSelected(selected.getRow(), selected.getCol(), false);
 					selected = null;
 					showState();
@@ -139,6 +150,49 @@ public class Presenter {
 		highlightedPositions.clear();
 		possibleMoves.clear();
 	}
+
+	//start drag event
+	public void dragStartEvent(int row, int col){
+		//TODO
+		if(state.getGameResult() != null) return;
+		Position thisPosition = new Position(row, col);
+		if(!stateExplorer.getPossibleStartPositions(state).contains(thisPosition)) return;//not a possible start position
+		newPieceSelected(thisPosition);
+	}
+	//drag over event
+	public void dragOverEvent(int row, int col){
+		//TODO
+		if(state.getGameResult() != null) return;
+		Position thisPosition = new Position(row, col);
+		//make a possible moves position highlighted but not selected
+		for(Move m : possibleMoves){
+			view.setSelected(m.getTo().getRow(), m.getTo().getCol(), false);
+			view.setHighlighted(m.getTo().getRow(), m.getTo().getCol(), true);
+			//make target position selected if it is in possible moves
+			if(m.getTo().equals(thisPosition))
+				view.setSelected(m.getTo().getRow(), m.getTo().getCol(), true);
+		}
+	}
+	//drop event
+	public void dropEvent(int row, int col){
+		//TODO
+		if(state.getGameResult() != null) return;
+		Position thisPosition = new Position(row, col);
+		Move move = new Move(selected, thisPosition);
+		if(possibleMoves.contains(move)){//possible move, try move
+			try{
+				view.setSelected(row, col, false);
+				stateChanger.makeMove(state, move);
+				//make changes on graphics
+				view.setSelected(selected.getRow(), selected.getCol(), false);
+				selected = null;
+				showState();
+			}catch(IllegalMove e){
+				
+			}
+		}
+		//else do nothing.
+	}
 	
 	//Renders the state
 	public void showState(){
@@ -152,7 +206,8 @@ public class Presenter {
 				view.setPiece(row, col, state.getPiece(row, col));
 			}
 		}
-		
+		//clear hightlighted
+		clearSets();
 		//If game is over
 		if(state.getGameResult() != null){
 			view.setGameResult(state.getGameResult());

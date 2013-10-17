@@ -7,11 +7,10 @@ public class JungleEntryPoint implements EntryPoint {
 
 	@Override
 	public void onModuleLoad() {
-		final Graphics graphics = new Graphics();		
-		Presenter presenter = new Presenter();		
-		presenter.setView(graphics);		
-		presenter.initializeHistory();		
-		RootPanel.get().add(graphics);
+		final Graphics graphics = new Graphics();
+		Presenter presenter = new Presenter(graphics);
+		graphics.initHandlers();
+		RootPanel.get().add((Graphics)presenter.getView());
 	}
 
 }

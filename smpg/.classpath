@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/guava/guava-15.0.jar"/>
 	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/guava/guava-gwt-15.0.jar"/>
 	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/mockito-all-1.9.5.jar"/>
+	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gwt-dnd-3.2.3.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

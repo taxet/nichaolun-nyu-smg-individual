@@ -5,6 +5,7 @@ import com.google.gwt.media.client.Audio;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.Grid;
 
 public class PieceMovingAnimation extends Animation {
 	
@@ -21,9 +22,11 @@ public class PieceMovingAnimation extends Animation {
 		this.start = start;
 		this.end = end;
 		this.piece = piece;
-		panel = (AbsolutePanel) start.getParent();
-		startX = panel.getWidgetLeft(this.start);
-		startY = panel.getWidgetTop(this.start);
+		panel = (AbsolutePanel) (((Grid) this.start.getParent()).getParent());
+		startX = this.start.getAbsoluteLeft()-panel.getAbsoluteLeft();
+		startY = this.start.getAbsoluteTop()-panel.getAbsoluteTop();
+		endX = this.end.getAbsoluteLeft()-panel.getAbsoluteLeft();
+		endY = this.end.getAbsoluteTop()-panel.getAbsoluteTop();
 		startWidth = this.piece.getWidth();
 		startHeight = this.piece.getHeight();
 		this.audio = audio;

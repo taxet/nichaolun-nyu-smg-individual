@@ -11,11 +11,19 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.AudioElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.DragDropEventBase;
+import com.google.gwt.event.dom.client.DragOverEvent;
+import com.google.gwt.event.dom.client.DragOverHandler;
+import com.google.gwt.event.dom.client.DragStartEvent;
+import com.google.gwt.event.dom.client.DragStartHandler;
+import com.google.gwt.event.dom.client.DropEvent;
+import com.google.gwt.event.dom.client.DropHandler;
 import com.google.gwt.media.client.Audio;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Element;
+import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
@@ -34,7 +42,9 @@ public class Graphics extends Composite implements View {
 	@UiField GameCss css;
 	@UiField Label whoseTurn;
 	@UiField Label gameStatus;
+	@UiField AbsolutePanel gamePanel;
 	@UiField Grid gameGrid;
+	@UiField Image logo;
 	private Image[][] board = new Image[State.ROWS][State.COLS];
 	private Presenter presenter;
 	
@@ -42,10 +52,12 @@ public class Graphics extends Composite implements View {
 	
 	public Graphics(){		
 		initWidget(uiBinder.createAndBindUi(this));
+		gamePanel.setSize("496px", "636px");
 		gameGrid.resize(State.ROWS, State.COLS);
 		gameGrid.setCellPadding(0);
 		gameGrid.setCellSpacing(0);
 		gameGrid.setBorderWidth(0);
+		gamePanel.setWidgetPosition(gameGrid, 3, 3);
 		
 		for(int row = 0; row < State.ROWS; row++){
 			for(int col = 0; col < State.COLS; col++){
@@ -53,21 +65,89 @@ public class Graphics extends Composite implements View {
 				board[row][col] = img;
 				final int rowSelected = row;
 				final int colSelected = col;
+				
+				//add click handler
 				img.addClickHandler(new ClickHandler(){
 					@Override
 					public void onClick(ClickEvent event){
 						presenter.selectBoard(rowSelected, colSelected);
 					}
 				});
-				img.setWidth("100%");
+				img.setSize("70px", "70px");
 				gameGrid.setWidget(row, col, img);
+				//set drag and drop handler
+				/*img.getElement().setDraggable(Element.DRAGGABLE_TRUE);
+				img.addDragStartHandler(new DragStartHandler(){
+					@Override
+					public void onDragStart(DragStartEvent event) {
+						event.setData("text", "dragging");
+						presenter.getView().setStatus("DragStart at ("+rowSelected+","+colSelected+")");
+						presenter.dragStartEvent(rowSelected, colSelected);
+					}
+				});
+				img.addDragOverHandler(new DragOverHandler(){
+					@Override
+					public void onDragOver(DragOverEvent event) {
+						presenter.dragOverEvent(rowSelected, colSelected);							
+					}						
+				});
+				img.addDropHandler(new DropHandler(){
+					@Override
+					public void onDrop(DropEvent event) {
+						presenter.dropEvent(rowSelected, colSelected);							
+					}
+				});*/
 			}
 		}
 		
 	}
 	
+	//initialize click handlers and drag&drop handlers of every image in board
+	public void initHandlers(){
+		for(int row = 0; row < State.ROWS; row++){
+			for(int col = 0; col < State.COLS; col++){
+				final int rowSelected = row;
+				final int colSelected = col;
+				//add click handler
+				/*board[row][col].addClickHandler(new ClickHandler(){
+					@Override
+					public void onClick(ClickEvent event){
+						presenter.selectBoard(rowSelected, colSelected);
+					}
+				});*/
+				
+				//set drag and drop handler
+				board[row][col].getElement().setDraggable(Element.DRAGGABLE_TRUE);
+				board[row][col].addDragStartHandler(new DragStartHandler(){
+					@Override
+					public void onDragStart(DragStartEvent event) {
+						event.setData("text", "dragging");
+						presenter.getView().setStatus("DragStart at ("+rowSelected+","+colSelected+")");
+						presenter.dragStartEvent(rowSelected, colSelected);
+					}
+				});
+				board[row][col].addDragOverHandler(new DragOverHandler(){
+					@Override
+					public void onDragOver(DragOverEvent event) {
+						presenter.dragOverEvent(rowSelected, colSelected);							
+					}						
+				});
+				board[row][col].addDropHandler(new DropHandler(){
+					@Override
+					public void onDrop(DropEvent event) {
+						presenter.dropEvent(rowSelected, colSelected);							
+					}
+				});
+			}
+		}
+	}
+	
 	public Presenter getPresenter(){
 		return presenter;
+	}
+	
+	public Image getBoard(int row, int col){
+		return board[row][col];
 	}
 	
 	@Override

@@ -14,7 +14,10 @@
     </ui:style>
     <g:HTMLPanel>
         <g:Label ui:field="whoseTurn" text="Whose turn" />
+        <g:AbsolutePanel ui:field="gamePanel">
+            <g:Grid ui:field="gameGrid"/>
+        </g:AbsolutePanel>
         <g:Label ui:field="gameStatus" text="" />
-        <g:Grid ui:field="gameGrid" />
+        <g:Image ui:field="logo" />
     </g:HTMLPanel>
 </ui:UiBinder>
