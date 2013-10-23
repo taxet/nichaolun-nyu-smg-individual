@@ -11,7 +11,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.AudioElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.DragDropEventBase;
 import com.google.gwt.event.dom.client.DragOverEvent;
 import com.google.gwt.event.dom.client.DragOverHandler;
 import com.google.gwt.event.dom.client.DragStartEvent;
@@ -52,6 +51,8 @@ public class Graphics extends Composite implements View {
 	
 	public Graphics(){		
 		initWidget(uiBinder.createAndBindUi(this));
+		logo.setResource(gameImages.logo());
+		
 		gamePanel.setSize("496px", "636px");
 		gameGrid.resize(State.ROWS, State.COLS);
 		gameGrid.setCellPadding(0);
@@ -99,7 +100,6 @@ public class Graphics extends Composite implements View {
 				});*/
 			}
 		}
-		
 	}
 	
 	//initialize click handlers and drag&drop handlers of every image in board
@@ -122,7 +122,6 @@ public class Graphics extends Composite implements View {
 					@Override
 					public void onDragStart(DragStartEvent event) {
 						event.setData("text", "dragging");
-						presenter.getView().setStatus("DragStart at ("+rowSelected+","+colSelected+")");
 						presenter.dragStartEvent(rowSelected, colSelected);
 					}
 				});
@@ -171,8 +170,10 @@ public class Graphics extends Composite implements View {
 	public void setWhoseTurn(Color color) {
 		if(color == Color.BLACK){
 			whoseTurn.setText("Black's Turn");
+			whoseTurn.setStyleName(css.blackTurn());
 		}else if(color == Color.RED){
 			whoseTurn.setText("Red's Turn");
+			whoseTurn.setStyleName(css.redTurn());
 		}else {
 			whoseTurn.setText("????'s Turn");
 		}
@@ -183,8 +184,10 @@ public class Graphics extends Composite implements View {
 		if(gameResult == null) return;
 		if(gameResult.getWinner() == Color.BLACK){
 			whoseTurn.setText("Black Win");
+			whoseTurn.setStyleName(css.blackTurn());
 		}else if(gameResult.getWinner() == Color.RED){
 			whoseTurn.setText("Red Win");
+			whoseTurn.setStyleName(css.redTurn());
 		}else {
 			whoseTurn.setText("???? Win");
 		}
