@@ -11,13 +11,49 @@
         td img{
           display: block
            }
+        .title{
+          margin: auto;
+          text-align: center;
+          font-size: 50px;
+           }
+        .center{
+          margin-left: auto;
+          margin-right: auto;
+           }
+        .redTurn{
+          margin-left: 0px;
+          text-align: left;
+          font-size: 48px;
+          color: #f00;
+           }
+        .blackTurn{
+          margin-left: 0px;
+          text-align: left;
+          font-size: 48px;
+          color: #000;
+           }
     </ui:style>
     <g:HTMLPanel>
-        <g:Label ui:field="whoseTurn" text="Whose turn" />
-        <g:AbsolutePanel ui:field="gamePanel">
-            <g:Grid ui:field="gameGrid"/>
-        </g:AbsolutePanel>
-        <g:Label ui:field="gameStatus" text="" />
-        <g:Image ui:field="logo" />
+        <g:HorizontalPanel  styleName="{css.center}">
+            <g:cell horizontalAlignment='ALIGN_CENTER'>
+                <g:Image ui:field="logo" />
+            </g:cell>
+            <g:cell horizontalAlignment='ALIGN_CENTER'>
+                <g:Label styleName="{css.title}" text="Jungle Game"/>
+            </g:cell>
+        </g:HorizontalPanel>
+        <g:HorizontalPanel>
+            <g:cell width="350px" horizontalAlignment='ALIGN_LEFT'>
+                <g:VerticalPanel styleName="margin-left:0px;">
+                    <g:Label ui:field="whoseTurn" text="Whose turn" />
+                    <g:Label ui:field="gameStatus" text="" />                
+                </g:VerticalPanel>
+            </g:cell>
+            <g:cell>
+                <g:AbsolutePanel styleName="{css.center}" ui:field="gamePanel">
+                    <g:Grid ui:field="gameGrid"/>
+                </g:AbsolutePanel>
+            </g:cell>
+        </g:HorizontalPanel>
     </g:HTMLPanel>
 </ui:UiBinder>

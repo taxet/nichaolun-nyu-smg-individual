@@ -17,9 +17,12 @@ import org.ninini.jungle.shared.StateChangerImpl;
 import org.ninini.jungle.shared.StateExplorer;
 import org.ninini.jungle.shared.StateExplorerImpl;
 
+import com.google.gwt.core.shared.GWT;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 
 
 public class Presenter {
@@ -51,6 +54,7 @@ public class Presenter {
 	private Set<Position> highlightedPositions;
 	private Set<Move> possibleMoves;
 	private Position selected;
+	private String userId = "";
 
 	public Presenter(){
 		state = new State();
@@ -78,6 +82,9 @@ public class Presenter {
 	public View getView(){
 		return view;
 	}
+	public String getUserId(){
+		return userId;
+	}
 	
 	public void setView(View view){
 		this.view = view;
@@ -93,6 +100,10 @@ public class Presenter {
 				view.setPiece(row, col, state.getPiece(row, col));
 			}
 		}
+	}
+	
+	public void setUserId(String userId){
+		this.userId = userId;
 	}
 	
 	public void selectBoard(int row, int col){		
@@ -153,7 +164,6 @@ public class Presenter {
 
 	//start drag event
 	public void dragStartEvent(int row, int col){
-		//TODO
 		if(state.getGameResult() != null) return;
 		Position thisPosition = new Position(row, col);
 		if(!stateExplorer.getPossibleStartPositions(state).contains(thisPosition)) return;//not a possible start position
@@ -161,7 +171,6 @@ public class Presenter {
 	}
 	//drag over event
 	public void dragOverEvent(int row, int col){
-		//TODO
 		if(state.getGameResult() != null) return;
 		Position thisPosition = new Position(row, col);
 		//make a possible moves position highlighted but not selected
@@ -175,7 +184,6 @@ public class Presenter {
 	}
 	//drop event
 	public void dropEvent(int row, int col){
-		//TODO
 		if(state.getGameResult() != null) return;
 		Position thisPosition = new Position(row, col);
 		Move move = new Move(selected, thisPosition);
@@ -212,6 +220,23 @@ public class Presenter {
 		if(state.getGameResult() != null){
 			view.setGameResult(state.getGameResult());
 		}		
+		
+		//send to server
+		AsyncCallback<String> callback = new AsyncCallback<String>() {
+
+			@Override
+			public void onFailure(Throwable caught) {
+				Window.alert("fail");
+			}
+
+			@Override
+			public void onSuccess(String result) {
+				//nothing
+			}
+			
+		};
+		JungleServiceAsync ac = (JungleServiceAsync) GWT.create(JungleService.class);
+		ac.SubMove(serializeState(state), userId, callback);
 	}
 	
 	//Create a valueChangeHnader responsible for record browser history
@@ -228,7 +253,7 @@ public class Presenter {
 	}
 	
 	//Creates a string representing all the information in a state.
-	public String serializeState(State state) {
+	public static String serializeState(State state) {
 		char[] stringBuffer = new char[35];
 		//[0] -- who's turn
 		switch(state.getTurn()){
@@ -357,7 +382,7 @@ public class Presenter {
 	}
 	
 	//Decodes a State encoded by serializeString.
-	public State unserializeState(String serialized){
+	public static State unserializeState(String serialized){
 		if (serialized == null) return new State();
 		if(serialized.length() != 35) return new State();
 		Color turn = null;
@@ -594,7 +619,7 @@ public class Presenter {
 	}
 	
 	//char to int
-	private int charToInt(char c){
+	private static int charToInt(char c){
 		switch(c){
 		case '0': return 0;
 		case '1': return 1;

@@ -13,6 +13,8 @@
   <inherits name='com.google.common.collect.Collect' />
 
   <!-- Inherit the default GWT style sheet.  You can change       -->
+  <inherits name='com.google.gwt.appengine.channel.Channel'/>
+  <inherits name='com.google.gwt.inject.Inject'/>
   <!-- the theme of your GWT application by uncommenting          -->
   <!-- any one of the following lines.                            -->
   <inherits name='com.google.gwt.user.theme.clean.Clean'/>

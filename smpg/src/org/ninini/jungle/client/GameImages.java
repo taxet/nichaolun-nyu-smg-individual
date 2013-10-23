@@ -52,4 +52,7 @@ public interface GameImages extends ClientBundle {
 	ImageResource redLion();
 	@Source("image/red_elephant.png")
 	ImageResource redElephant();
+	
+	@Source("image/logo.png")
+	ImageResource logo();
 }

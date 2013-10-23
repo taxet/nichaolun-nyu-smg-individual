@@ -9,6 +9,11 @@
 	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/guava/guava-15.0.jar"/>
 	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/guava/guava-gwt-15.0.jar"/>
 	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/mockito-all-1.9.5.jar"/>
-	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gwt-dnd-3.2.3.jar"/>
+	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gin/gin-2.1.1.jar"/>
+	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gin/aopalliance.jar"/>
+	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gin/guice-3.0.jar"/>
+	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gin/guice-assistedinject-3.0.jar"/>
+	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gin/javax.inject.jar"/>
+	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gwt-gae-channel-2.0.0.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
