@@ -1,5 +1,6 @@
 package org.ninini.jungle.server;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,34 +18,42 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private String wait = "";
-	private Map<String, String> hash = new HashMap<String, String>();
+	private ArrayList<String> waitIds = new ArrayList<String>();
+	private Map<String,String> gamePlaying = new HashMap<String,String>();
+	private ChannelService channelService = ChannelServiceFactory.getChannelService();
 	//ChannelService channelService = ChannelServiceFactory.getChannelService();
 
 	@Override
-	public String SubMove(String state, String id) {
-		ChannelService channelService = ChannelServiceFactory.getChannelService();
-		if(hash.containsKey(id)){
-			String op = hash.get(id);
-			channelService.sendMessage(new ChannelMessage(op, state));
-			channelService.sendMessage(new ChannelMessage(id, state));
-		}else if(hash.values().contains(id)){
-			String op = "";
-			for(String key : hash.keySet()){
-				if(hash.get(key).equals(id)) op = key;
-			}
-			channelService.sendMessage(new ChannelMessage(op, state));
-			channelService.sendMessage(new ChannelMessage(id, state));
-		}else if(wait.equals("")){
-			wait = id;
-			channelService.sendMessage(new ChannelMessage(id,"Wtttt$$$$RNBQKBNRPPPPPPPP$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$pppppppprnbqkbnr0"));
-		}else if(!wait.equals(id)){
-			hash.put(wait, id);
-			wait="";
-			channelService.sendMessage(new ChannelMessage(wait, state));
-			channelService.sendMessage(new ChannelMessage(id, state));
-		}else channelService.sendMessage(new ChannelMessage(id,"Wtttt$$$$RNBQKBNRPPPPPPPP$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$pppppppprnbqkbnr0"));
+	public String updateState(String state, String id) {
+		String anotherId = gamePlaying.get(id);
+		channelService.sendMessage(new ChannelMessage(id, state));
+		channelService.sendMessage(new ChannelMessage(anotherId, state));
+		
+		//if game is over
+		if(state.toCharArray()[1] != '0'){
+			gamePlaying.remove(id);
+			gamePlaying.remove(anotherId);
+		}
 		return state;
+	}
+
+	@Override
+	public String findingGame(String id){
+		String match = "";
+		if(gamePlaying.containsKey(id)){//id is playing
+			
+		}else	if(waitIds.isEmpty()){//list is empty
+			waitIds.add(id);			
+		}else if(!waitIds.contains(id)){//id not in waiting list
+			//adding Matches
+			match = waitIds.get(0);
+			channelService.sendMessage(new ChannelMessage(match, id+"R"));
+			channelService.sendMessage(new ChannelMessage(id, match+"B"));
+			gamePlaying.put(match, id);
+			gamePlaying.put(id, match);
+			waitIds.remove(0);
+		}
+		return match;
 	}
 
 }
