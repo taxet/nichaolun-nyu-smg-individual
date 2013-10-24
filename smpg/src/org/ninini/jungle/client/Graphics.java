@@ -22,12 +22,16 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Element;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbsolutePanel;
+import com.google.gwt.user.client.ui.Anchor;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.web.bindery.event.shared.HandlerRegistration;
 
 public class Graphics extends Composite implements View {
 	private static GameImages gameImages = GWT.create(GameImages.class);
@@ -41,13 +45,18 @@ public class Graphics extends Composite implements View {
 	@UiField GameCss css;
 	@UiField Label whoseTurn;
 	@UiField Label gameStatus;
+	@UiField Label loginMessage;
 	@UiField AbsolutePanel gamePanel;
 	@UiField Grid gameGrid;
 	@UiField Image logo;
+	@UiField Button loginout;
+	@UiField Button findOpponent;
 	private Image[][] board = new Image[State.ROWS][State.COLS];
 	private Presenter presenter;
 	
 	private PieceMovingAnimation animation;
+	
+	private HandlerRegistration handlerRegistration;
 	
 	public Graphics(){		
 		initWidget(uiBinder.createAndBindUi(this));
@@ -100,10 +109,24 @@ public class Graphics extends Composite implements View {
 				});*/
 			}
 		}
+		
+		//init button handle
+		
+		findOpponent.addClickHandler(new ClickHandler(){
+			@Override
+			public void onClick(ClickEvent event) {
+				if(!presenter.ifLogin()){
+					Window.alert("Please login first.");
+				}else{
+					presenter.findOpponend();
+					findOpponent.setEnabled(false);
+				}
+			}			
+		});
 	}
 	
-	//initialize click handlers and drag&drop handlers of every image in board
-	public void initHandlers(){
+	//initialize drag&drop handlers of every image in board
+	public void initDndHandlers(){
 		for(int row = 0; row < State.ROWS; row++){
 			for(int col = 0; col < State.COLS; col++){
 				final int rowSelected = row;
@@ -141,6 +164,38 @@ public class Graphics extends Composite implements View {
 		}
 	}
 	
+	//add click handler to loginout Button
+	public void setLogButton(final String url){
+		if(handlerRegistration != null) handlerRegistration.removeHandler();
+		if(presenter.ifLogin()){//Sign out
+			handlerRegistration = loginout.addClickHandler(new ClickHandler(){
+
+				@Override
+				public void onClick(ClickEvent event) {
+					// pop up log out panel
+					LogoutPanel logoutPanel = new LogoutPanel(url);
+					logoutPanel.center();
+					
+				}
+				
+			});
+			loginout.setText("Sign Out");
+		}else{//log in
+			handlerRegistration = loginout.addClickHandler(new ClickHandler(){
+
+				@Override
+				public void onClick(ClickEvent event) {
+					// pop up log in panel
+					LoginPanel loginPanel = new LoginPanel(url);
+					loginPanel.center();
+				}
+				
+			});			
+			loginout.setText("Log In");
+		}
+	}
+
+	
 	public Presenter getPresenter(){
 		return presenter;
 	}
@@ -167,12 +222,18 @@ public class Graphics extends Composite implements View {
 	}
 
 	@Override
-	public void setWhoseTurn(Color color) {
+	public void setWhoseTurn(Color color, boolean myTurn) {
 		if(color == Color.BLACK){
-			whoseTurn.setText("Black's Turn");
+			if(myTurn)
+				whoseTurn.setText("Your Turn");
+			else
+				whoseTurn.setText("Black's Turn");
 			whoseTurn.setStyleName(css.blackTurn());
 		}else if(color == Color.RED){
-			whoseTurn.setText("Red's Turn");
+			if(myTurn)
+				whoseTurn.setText("Your Turn");
+			else
+				whoseTurn.setText("Red's Turn");
 			whoseTurn.setStyleName(css.redTurn());
 		}else {
 			whoseTurn.setText("????'s Turn");
@@ -199,6 +260,9 @@ public class Graphics extends Composite implements View {
 		} else return;
 		audio.addSource(gameSound.victorySound().getSafeUri().asString(), AudioElement.TYPE_OGG);
 		audio.play();
+		
+		//enable findopponent button
+		findOpponent.setEnabled(true);
 	}
 	
 	//Get a block in board without piece on it
@@ -355,6 +419,11 @@ public class Graphics extends Composite implements View {
 		}
 		animation = new PieceMovingAnimation(startImage, endImage, pieceImage, blankImageRes, audio);
 		animation.run(1000);
+	}
+	
+	@Override
+	public void setLoginMessage(String msg){
+		loginMessage.setText(msg);
 	}
 
 }

@@ -121,7 +121,7 @@ public class PresenterTest {
 				verify(view).setPiece(row, col, state.getPiece(row, col));
 			}
 		}
-		verify(view).setWhoseTurn(Color.BLACK);
+		verify(view).setWhoseTurn(Color.BLACK,false);
 		verify(view).setGameResult(null);
 	}
 	

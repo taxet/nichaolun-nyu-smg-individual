@@ -32,6 +32,9 @@
           font-size: 48px;
           color: #000;
            }
+        .whiteText{
+          color: white
+           }
     </ui:style>
     <g:HTMLPanel>
         <g:HorizontalPanel  styleName="{css.center}">
@@ -46,7 +49,12 @@
             <g:cell width="350px" horizontalAlignment='ALIGN_LEFT'>
                 <g:VerticalPanel styleName="margin-left:0px;">
                     <g:Label ui:field="whoseTurn" text="Whose turn" />
-                    <g:Label ui:field="gameStatus" text="" />                
+                    <g:Label ui:field="loginMessage" text="Please Login."/>
+                    <g:Label ui:field="gameStatus" styleName="{css.whiteText}" text="" />
+                    <g:HorizontalPanel>
+                        <g:Button ui:field="findOpponent" text="Find Game" />
+                    </g:HorizontalPanel>
+                    <g:Button ui:field="loginout" text="Log In" />
                 </g:VerticalPanel>
             </g:cell>
             <g:cell>

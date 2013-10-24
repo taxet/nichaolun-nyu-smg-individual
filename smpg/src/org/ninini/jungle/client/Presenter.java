@@ -17,11 +17,14 @@ import org.ninini.jungle.shared.StateChangerImpl;
 import org.ninini.jungle.shared.StateExplorer;
 import org.ninini.jungle.shared.StateExplorerImpl;
 
+import com.google.gwt.appengine.channel.client.ChannelError;
+import com.google.gwt.appengine.channel.client.ChannelFactoryImpl;
+import com.google.gwt.appengine.channel.client.Socket;
+import com.google.gwt.appengine.channel.client.SocketListener;
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 
@@ -32,7 +35,7 @@ public class Presenter {
 		//Turns the highlighting on or off at this shell
 		void setHighlighted(int row, int col, boolean highlighted);
 		//Indicate whose turn
-		void setWhoseTurn(Color color);
+		void setWhoseTurn(Color color, boolean myTurn);
 		//Indicate the game result
 		void setGameResult(GameResult gameResult);
 		//Indicate the presenter
@@ -45,6 +48,8 @@ public class Presenter {
 		void playSoundWhenSelectPiece(Piece piece);
 		//play animation
 		void playAnimation(Move move,Piece startPiece, boolean capture);
+		//set Login message
+		void setLoginMessage(String msg);
 	}
 
 	private View view;
@@ -55,6 +60,11 @@ public class Presenter {
 	private Set<Move> possibleMoves;
 	private Position selected;
 	private String userId = "";
+	private Color myColor;
+	private boolean login = false;
+	private boolean gameStart = false;
+	
+	private JungleServiceAsync jungleServiceAsync;
 
 	public Presenter(){
 		state = new State();
@@ -63,7 +73,7 @@ public class Presenter {
 		stateChanger = new StateChangerImpl();
 		stateExplorer = new StateExplorerImpl();
 		selected = null;
-		initializeHistory();
+		//initializeHistory();
 	}
 	public Presenter(View view){
 		state = new State();
@@ -73,7 +83,7 @@ public class Presenter {
 		stateExplorer = new StateExplorerImpl();
 		selected = null;
 		setView(view);
-		initializeHistory();
+		//initializeHistory();
 	}
 	
 	public State getState(){
@@ -85,6 +95,9 @@ public class Presenter {
 	public String getUserId(){
 		return userId;
 	}
+	public boolean ifLogin(){
+		return login;
+	}
 	
 	public void setView(View view){
 		this.view = view;
@@ -94,7 +107,7 @@ public class Presenter {
 	public void setState(State state){
 		this.state = state;
 		view.setGameResult(state.getGameResult());
-		view.setWhoseTurn(state.getTurn());
+		view.setWhoseTurn(state.getTurn(), myColor == state.getTurn());
 		for(int row = 0; row < State.ROWS; row++){
 			for(int col = 0; col < State.COLS; col++){
 				view.setPiece(row, col, state.getPiece(row, col));
@@ -105,9 +118,19 @@ public class Presenter {
 	public void setUserId(String userId){
 		this.userId = userId;
 	}
+	public void logIn(String userId){
+		login = true;
+		setUserId(userId);
+	}
+	public void logOut(){
+		login = false;
+		userId = "";
+	}
 	
-	public void selectBoard(int row, int col){		
+	public void selectBoard(int row, int col){
+		if(!gameStart) return;
 		if(state.getGameResult() != null) return;
+		if(myColor == null || !(myColor == state.getTurn())) return;
 		if(selected == null){//no piece is selected
 			Position temp = new Position(row,col);
 			if(state.getPiece(temp) != null){
@@ -164,14 +187,18 @@ public class Presenter {
 
 	//start drag event
 	public void dragStartEvent(int row, int col){
+		if(!gameStart) return;
 		if(state.getGameResult() != null) return;
+		if(myColor == null || !(myColor == state.getTurn())) return;
 		Position thisPosition = new Position(row, col);
 		if(!stateExplorer.getPossibleStartPositions(state).contains(thisPosition)) return;//not a possible start position
 		newPieceSelected(thisPosition);
 	}
 	//drag over event
 	public void dragOverEvent(int row, int col){
+		if(!gameStart) return;
 		if(state.getGameResult() != null) return;
+		if(myColor == null || !(myColor == state.getTurn())) return;
 		Position thisPosition = new Position(row, col);
 		//make a possible moves position highlighted but not selected
 		for(Move m : possibleMoves){
@@ -184,7 +211,9 @@ public class Presenter {
 	}
 	//drop event
 	public void dropEvent(int row, int col){
+		if(!gameStart) return;
 		if(state.getGameResult() != null) return;
+		if(myColor == null || !(myColor == state.getTurn())) return;
 		Position thisPosition = new Position(row, col);
 		Move move = new Move(selected, thisPosition);
 		if(possibleMoves.contains(move)){//possible move, try move
@@ -204,7 +233,7 @@ public class Presenter {
 	
 	//Renders the state
 	public void showState(){
-		view.setWhoseTurn(state.getTurn());
+		view.setWhoseTurn(state.getTurn(), myColor == state.getTurn());
 		view.setGameResult(state.getGameResult());
 		//Render the cells
 		for(int row = 0; row < State.ROWS; row++){
@@ -218,29 +247,80 @@ public class Presenter {
 		clearSets();
 		//If game is over
 		if(state.getGameResult() != null){
-			view.setGameResult(state.getGameResult());
+			gameStart = false;
 		}		
 		
 		//send to server
-		AsyncCallback<String> callback = new AsyncCallback<String>() {
-
+		jungleServiceAsync.updateState(serializeState(state), userId,
+				new AsyncCallback<String>() {
 			@Override
 			public void onFailure(Throwable caught) {
-				Window.alert("fail");
+				view.setStatus("Get Callback Fail");
 			}
 
 			@Override
 			public void onSuccess(String result) {
 				//nothing
 			}
+		});
+	}
+	
+	//initialize channel to Server
+	public void initMuiltiPlayer(LoginInfo loginInfo){
+		jungleServiceAsync = GWT.create(JungleService.class);
+		Socket socket = new ChannelFactoryImpl().createChannel(loginInfo.getToken()).open(new SocketListener(){
+
+			@Override
+			public void onOpen() {
+				view.setStatus("Socket open success.");
+			}
+
+			@Override
+			public void onMessage(String message) {
+				if(!gameStart){//looking for another player
+					String oppoName = message.substring(0, message.length() - 1);
+					char color = message.toCharArray()[message.length() - 1];
+					view.setLoginMessage("Finding your opponent: "+oppoName);
+					myColor = color=='R'?Color.RED:Color.BLACK;
+					gameStart = true;
+					setState(new State());
+				}else{//in gaming, refresh state
+					setState(unserializeState(message));
+				}
+			}
+
+			@Override
+			public void onError(ChannelError error) {
+				view.setStatus("Socket open error.");				
+			}
+
+			@Override
+			public void onClose() {
+				view.setStatus("Socket close.");
+			}
 			
-		};
-		JungleServiceAsync ac = (JungleServiceAsync) GWT.create(JungleService.class);
-		ac.SubMove(serializeState(state), userId, callback);
+		});
+	}
+	
+	//ready to find an opponent
+	public void findOpponend(){
+		jungleServiceAsync.findingGame(userId, new AsyncCallback<String>(){
+
+			@Override
+			public void onFailure(Throwable caught) {
+				view.setStatus(caught.getMessage());				
+			}
+
+			@Override
+			public void onSuccess(String result) {
+			}
+			
+		});
+		view.setLoginMessage("Looking for another player...");
 	}
 	
 	//Create a valueChangeHnader responsible for record browser history
-	public void initializeHistory(){
+	/*public void initializeHistory(){
 		History.addValueChangeHandler(new ValueChangeHandler<String>(){
 			@Override
 			public void onValueChange(ValueChangeEvent<String> event){
@@ -250,7 +330,7 @@ public class Presenter {
 		});
 		String startState = History.getToken();
 		setState(unserializeState(startState));
-	}
+	}*/
 	
 	//Creates a string representing all the information in a state.
 	public static String serializeState(State state) {

@@ -2,7 +2,6 @@ package org.ninini.jungle.client;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.appengine.channel.client.Channel;
@@ -20,11 +19,12 @@ public class JungleEntryPoint implements EntryPoint {
 		//initialize graphics and presenter
 		final Graphics graphics = new Graphics();
 		final Presenter presenter = new Presenter(graphics);
-		graphics.initHandlers();
+		RootPanel.get().add((Graphics)presenter.getView());
+		graphics.initDndHandlers();
 		
 		//initialize loginService
 		LoginServiceAsync loginService = GWT.create(LoginService.class);
-		loginService.login(GWT.getHostPageBaseURL()+"jungle.html", new AsyncCallback<LoginInfo>() {
+		loginService.login(GWT.getHostPageBaseURL(), new AsyncCallback<LoginInfo>() {
 
 			@Override
 			public void onFailure(Throwable caught) {
@@ -35,40 +35,17 @@ public class JungleEntryPoint implements EntryPoint {
 			public void onSuccess(LoginInfo result) {
 				loginInfo = result;
 				if(loginInfo.isLoggedIn()){
-					presenter.setUserId(loginInfo.getEmailAddress());
-					Window.alert("welcome "+loginInfo.getEmailAddress()+loginInfo.getToken());
-					Socket socket = new ChannelFactoryImpl().createChannel(loginInfo.getToken()).open(new SocketListener(){
-
-						@Override
-						public void onOpen() {
-							graphics.setStatus("Socket open success.");
-						}
-
-						@Override
-						public void onMessage(String message) {
-							presenter.setState(Presenter.unserializeState(message));
-						}
-
-						@Override
-						public void onError(ChannelError error) {
-							graphics.setStatus("Socket open error.");
-							
-						}
-
-						@Override
-						public void onClose() {
-							graphics.setStatus("Socket close.");
-						}
-						
-					});
+					presenter.logIn(loginInfo.getEmailAddress());
+					presenter.initMuiltiPlayer(loginInfo);
+					graphics.setLogButton(loginInfo.getLogoutUrl());
+					graphics.setLoginMessage("Welcome, "+loginInfo.getNickname());
 				}else{
-					LoginPanel loginPanel = new LoginPanel(loginInfo.getLoginUrl());
-					loginPanel.center();
+					presenter.logOut();
+					graphics.setLogButton(loginInfo.getLoginUrl());
 				}
 			}
 			
 		});
-		RootPanel.get().add((Graphics)presenter.getView());
 	}
 
 }

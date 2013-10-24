@@ -7,6 +7,26 @@
 
   <!-- Servlets -->
   
+  <!-- Jungle Service -->
+  <servlet>
+      <servlet-name>JungleServiceImpl</servlet-name>
+      <servlet-class>org.ninini.jungle.server.JungleServiceImpl</servlet-class>
+  </servlet>
+  <servlet-mapping>
+      <servlet-name>JungleServiceImpl</servlet-name>
+      <url-pattern>/jungle/JungleService</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Login Service -->
+  <servlet>
+      <servlet-name>LoginServiceImpl</servlet-name>
+      <servlet-class>org.ninini.jungle.server.LoginServiceImpl</servlet-class>
+  </servlet>
+  <servlet-mapping>
+      <servlet-name>LoginServiceImpl</servlet-name>
+      <url-pattern>/jungle/login</url-pattern>
+  </servlet-mapping>
+  
   <!-- Default page to serve -->
   <welcome-file-list>
     <welcome-file>jungle.html</welcome-file>
