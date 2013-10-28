@@ -35,6 +35,11 @@
         .whiteText{
           color: white
            }
+        .subTitle{
+          font-size: 36px;
+          color: #000;
+          font-weight: bold
+           }
     </ui:style>
     <g:HTMLPanel>
         <g:HorizontalPanel  styleName="{css.center}">
@@ -50,9 +55,12 @@
                 <g:VerticalPanel styleName="margin-left:0px;">
                     <g:Label ui:field="whoseTurn" text="Whose turn" />
                     <g:Label ui:field="loginMessage" text="Please Login."/>
-                    <g:Label ui:field="gameStatus" styleName="{css.whiteText}" text="" />
+                    <g:Label ui:field="newGameMessage" />
+                    <g:Label ui:field="oppoMessage" text="Please find a game."/>
+                    <g:TextBox ui:field="oppoEmail" />
                     <g:HorizontalPanel>
-                        <g:Button ui:field="findOpponent" text="Find Game" />
+                        <g:Button ui:field="quickStart" text="Quick Start" />
+                        <g:Button ui:field="findOpponent" text="Match with" />
                     </g:HorizontalPanel>
                     <g:Button ui:field="loginout" text="Log In" />
                 </g:VerticalPanel>
@@ -62,6 +70,18 @@
                     <g:Grid ui:field="gameGrid"/>
                 </g:AbsolutePanel>
             </g:cell>
+            <g:cell width="350px">
+                <g:VerticalPanel>
+                    <g:Label styleName="{css.subTitle}" text="Online Player" />
+                    <g:ListBox width="350px" visibleItemCount="7" ui:field="playersOnline" />
+                    
+                    <g:Label styleName="{css.subTitle}" text="Your matches" />
+                    <g:ListBox width="350px" visibleItemCount="10" ui:field="matchesList" />
+                    <g:Button ui:field="loadGameButton" text="Load Game" />
+                </g:VerticalPanel>
+            </g:cell>
         </g:HorizontalPanel>
+        
+        <g:Label ui:field="gameStatus" styleName="{css.whiteText}" text="" />
     </g:HTMLPanel>
 </ui:UiBinder>

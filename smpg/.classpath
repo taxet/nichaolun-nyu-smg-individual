@@ -15,5 +15,6 @@
 	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gin/guice-assistedinject-3.0.jar"/>
 	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gin/javax.inject.jar"/>
 	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/gwt-gae-channel-2.0.0.jar"/>
+	<classpathentry kind="lib" path="/home/nini/Documents/multiplayergames/objectify-4.0b3.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
