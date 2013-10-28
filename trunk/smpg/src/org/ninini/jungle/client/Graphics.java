@@ -1,14 +1,21 @@
 package org.ninini.jungle.client;
 
+import java.util.ArrayList;
+import java.util.Set;
+
 import org.ninini.jungle.client.Presenter.View;
 import org.ninini.jungle.shared.Color;
 import org.ninini.jungle.shared.GameResult;
+import org.ninini.jungle.shared.Match;
 import org.ninini.jungle.shared.Move;
 import org.ninini.jungle.shared.Piece;
+import org.ninini.jungle.shared.Player;
 import org.ninini.jungle.shared.State;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.AudioElement;
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.DragOverEvent;
@@ -21,6 +28,7 @@ import com.google.gwt.media.client.Audio;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbsolutePanel;
@@ -30,6 +38,9 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 
@@ -46,11 +57,18 @@ public class Graphics extends Composite implements View {
 	@UiField Label whoseTurn;
 	@UiField Label gameStatus;
 	@UiField Label loginMessage;
+	@UiField Label newGameMessage;
 	@UiField AbsolutePanel gamePanel;
 	@UiField Grid gameGrid;
 	@UiField Image logo;
 	@UiField Button loginout;
+	@UiField Button quickStart;
 	@UiField Button findOpponent;
+	@UiField ListBox playersOnline;
+	@UiField Label oppoMessage;
+	@UiField TextBox oppoEmail;
+	@UiField ListBox matchesList;
+	@UiField Button loadGameButton;
 	private Image[][] board = new Image[State.ROWS][State.COLS];
 	private Presenter presenter;
 	
@@ -110,19 +128,76 @@ public class Graphics extends Composite implements View {
 			}
 		}
 		
-		//init button handle
-		
-		findOpponent.addClickHandler(new ClickHandler(){
+		//initialize other handlers
+		//initialize playersOnline changeHandler
+		playersOnline.addChangeHandler(new ChangeHandler(){
+			//when a email address selected, the oppoEmail will set text to this email
 			@Override
-			public void onClick(ClickEvent event) {
-				if(!presenter.ifLogin()){
-					Window.alert("Please login first.");
-				}else{
-					presenter.findOpponend();
-					findOpponent.setEnabled(false);
-				}
-			}			
+			public void onChange(ChangeEvent event) {
+				int selected = playersOnline.getSelectedIndex();
+				if(selected >= 0)
+					oppoEmail.setText(playersOnline.getValue(selected));
+			}
+			
 		});
+		
+	}
+	
+	//set Button Click Handler
+	//quick start button
+	@UiHandler("quickStart")
+	void quickStartClickHandler(ClickEvent e){
+		if(!presenter.ifLogin()){
+			Window.alert("Please login first.");
+		}else{
+			presenter.findOpponend();
+		}
+	}
+	
+	//find opponent button
+	@UiHandler("findOpponent")
+	void findOpponentClickHandler(ClickEvent e){
+		if(!presenter.ifLogin()){
+			Window.alert("Please login first.");
+		}else{
+			presenter.findOpponentWith(oppoEmail.getText());
+		}
+	}
+	
+	//load game button
+	@UiHandler("loadGameButton")
+	void loadGameClickHander(ClickEvent e){
+		if(!presenter.ifLogin()){
+			Window.alert("Please login first.");
+		}else{
+			int selected = matchesList.getSelectedIndex();
+			if(selected == -1){//not selected
+			}else{//select a game
+				Match selectedMatch = presenter.getMatches().get(selected);
+				presenter.loadGame(selectedMatch.getMatchId());
+				if(selectedMatch.ifFinished())
+					Window.alert("This game is finished.");
+			}
+		}		
+	}
+	
+	//refresh playersOnline list
+	public void refreshPlayersOnline(Set<Player> players){
+		playersOnline.clear();
+		for(Player p : players){
+			if(!p.getEmail().equals(presenter.getUserId())){//not the player
+				playersOnline.addItem(p.getEmail());
+			}
+		}
+	}
+	//refresh matches list
+	@Override
+	public void refresheMatches(ArrayList<Match> matches){
+		matches.clear();
+		for(Match m : matches){
+			String msg = ""+m.getMatchId();
+			matchesList.addItem(msg);
+		}
 	}
 	
 	//initialize drag&drop handlers of every image in board
@@ -262,7 +337,7 @@ public class Graphics extends Composite implements View {
 		audio.play();
 		
 		//enable findopponent button
-		findOpponent.setEnabled(true);
+		quickStart.setEnabled(true);
 	}
 	
 	//Get a block in board without piece on it
@@ -412,7 +487,7 @@ public class Graphics extends Composite implements View {
 				audio.addSource(gameSound.ennterWaterSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
 			else if(State.inRiver(move.getFrom()) && !State.inRiver(move.getTo()))
 				audio.addSource(gameSound.landingSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
-			else if(presenter.getState().inOpponentTrap(move.getTo()))
+			else if(presenter.getState().inPlayerTrap(move.getTo()))
 				audio.addSource(gameSound.enterTrapSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
 			else 
 				audio.addSource(gameSound.moveSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
@@ -424,6 +499,17 @@ public class Graphics extends Composite implements View {
 	@Override
 	public void setLoginMessage(String msg){
 		loginMessage.setText(msg);
+	}
+
+	@Override
+	public void newGameMessage(String message) {
+		newGameMessage.setText(message);
+		Audio audio = null;
+		if(Audio.isSupported()){
+			audio = Audio.createIfSupported();
+			audio.addSource(gameSound.bellSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
+			audio.play();
+		}
 	}
 
 }

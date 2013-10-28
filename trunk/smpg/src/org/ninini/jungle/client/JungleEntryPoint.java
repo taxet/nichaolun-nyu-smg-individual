@@ -1,5 +1,9 @@
 package org.ninini.jungle.client;
 
+import java.util.Set;
+
+import org.ninini.jungle.shared.Player;
+
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -42,7 +46,23 @@ public class JungleEntryPoint implements EntryPoint {
 				}else{
 					presenter.logOut();
 					graphics.setLogButton(loginInfo.getLoginUrl());
+					LoginPanel loginPanel = new LoginPanel(loginInfo.getLoginUrl());
+					loginPanel.center();
 				}
+			}
+			
+		});
+		//online list
+		loginService.onlineList(presenter.getUserId(), new AsyncCallback<Set<Player>>() {
+
+			@Override
+			public void onFailure(Throwable caught) {
+				graphics.setStatus(caught.getMessage());
+			}
+
+			@Override
+			public void onSuccess(Set<Player> result) {
+				graphics.refreshPlayersOnline(result);
 			}
 			
 		});

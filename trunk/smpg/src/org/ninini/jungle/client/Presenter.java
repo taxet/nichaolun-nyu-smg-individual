@@ -1,5 +1,6 @@
 package org.ninini.jungle.client;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -7,6 +8,7 @@ import org.ninini.jungle.shared.Color;
 import org.ninini.jungle.shared.GameResult;
 import org.ninini.jungle.shared.GameResultReason;
 import org.ninini.jungle.shared.IllegalMove;
+import org.ninini.jungle.shared.Match;
 import org.ninini.jungle.shared.Move;
 import org.ninini.jungle.shared.Piece;
 import org.ninini.jungle.shared.PieceRank;
@@ -25,6 +27,7 @@ import com.google.gwt.core.shared.GWT;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 
@@ -50,6 +53,10 @@ public class Presenter {
 		void playAnimation(Move move,Piece startPiece, boolean capture);
 		//set Login message
 		void setLoginMessage(String msg);
+		//new game message
+		void newGameMessage(String message);
+		//refresh matches list
+		void refresheMatches(ArrayList<Match> matches);
 	}
 
 	private View view;
@@ -63,8 +70,11 @@ public class Presenter {
 	private Color myColor;
 	private boolean login = false;
 	private boolean gameStart = false;
+	private Match currentMatch;
+	private ArrayList<Match> matches = new ArrayList<Match>();
 	
 	private JungleServiceAsync jungleServiceAsync;
+	private Socket socket;
 
 	public Presenter(){
 		state = new State();
@@ -98,6 +108,20 @@ public class Presenter {
 	public boolean ifLogin(){
 		return login;
 	}
+	public Match getCurrentMatch(){
+		return currentMatch;
+	}
+	public String getOpponentId(){
+		if(currentMatch == null) return "";
+		if(userId.equals(currentMatch.getBlackPlayer()))
+			return currentMatch.getRedPlayer();
+		if(userId.equals(currentMatch.getRedPlayer()))
+			return currentMatch.getBlackPlayer();
+		return "";
+	}
+	public ArrayList<Match> getMatches(){
+		return matches;
+	}
 	
 	public void setView(View view){
 		this.view = view;
@@ -125,6 +149,15 @@ public class Presenter {
 	public void logOut(){
 		login = false;
 		userId = "";
+	}
+	public void setCurrentMatch(Match match){
+		currentMatch = new Match(match);
+		state = unserializeState(currentMatch.getState());
+		gameStart = true;
+		if(userId.equals(currentMatch.getBlackPlayer()))
+			myColor = Color.BLACK;
+		if(userId.equals(currentMatch.getRedPlayer()))
+			myColor = Color.RED;
 	}
 	
 	public void selectBoard(int row, int col){
@@ -248,27 +281,31 @@ public class Presenter {
 		//If game is over
 		if(state.getGameResult() != null){
 			gameStart = false;
+			socket.close();
 		}		
 		
 		//send to server
-		jungleServiceAsync.updateState(serializeState(state), userId,
-				new AsyncCallback<String>() {
+		jungleServiceAsync.updateState(serializeState(state), userId, currentMatch.getMatchId(),
+				new AsyncCallback<Void>() {
 			@Override
 			public void onFailure(Throwable caught) {
 				view.setStatus("Get Callback Fail");
 			}
 
 			@Override
-			public void onSuccess(String result) {
+			public void onSuccess(Void result) {
 				//nothing
 			}
 		});
+		
+		//refresh match
+		currentMatch.setState(serializeState(state));
 	}
 	
 	//initialize channel to Server
 	public void initMuiltiPlayer(LoginInfo loginInfo){
 		jungleServiceAsync = GWT.create(JungleService.class);
-		Socket socket = new ChannelFactoryImpl().createChannel(loginInfo.getToken()).open(new SocketListener(){
+		socket = new ChannelFactoryImpl().createChannel(loginInfo.getToken()).open(new SocketListener(){
 
 			@Override
 			public void onOpen() {
@@ -277,7 +314,7 @@ public class Presenter {
 
 			@Override
 			public void onMessage(String message) {
-				if(!gameStart){//looking for another player
+				/*if(!gameStart){//looking for another player
 					String oppoName = message.substring(0, message.length() - 1);
 					char color = message.toCharArray()[message.length() - 1];
 					view.setLoginMessage("Finding your opponent: "+oppoName);
@@ -286,6 +323,27 @@ public class Presenter {
 					setState(new State());
 				}else{//in gaming, refresh state
 					setState(unserializeState(message));
+					showState();
+				}*/
+				Match gotMatch = Match.unserializeMatch(message);
+				if(currentMatch == null || currentMatch.getMatchId().equals(gotMatch.getMatchId())){
+					//new game to start
+					String oppoId = "";
+					if(userId.equals(gotMatch.getRedPlayer())) oppoId = gotMatch.getBlackPlayer();
+					if(userId.equals(gotMatch.getBlackPlayer())) oppoId = gotMatch.getRedPlayer();
+					String newGameMessage = "";
+					//new game
+					boolean newGameFlag = true;
+					for(Match m : getMatches()){
+						if(m.getMatchId().equals(gotMatch.getMatchId())) newGameFlag = false;
+					}
+					if(newGameFlag) newGameMessage = oppoId+" wants to have a new game with you.";
+					else newGameMessage = oppoId+" has unpdate the state in match "+gotMatch.getMatchId();
+					view.newGameMessage(newGameMessage);
+					setMatchesOfUser();
+				}else{
+					//refresh current game
+					setCurrentMatch(gotMatch);
 				}
 			}
 
@@ -302,9 +360,13 @@ public class Presenter {
 		});
 	}
 	
-	//ready to find an opponent
+	//ready to find an opponent randomly
 	public void findOpponend(){
-		jungleServiceAsync.findingGame(userId, new AsyncCallback<String>(){
+		if(!ifLogin()){//not login
+			Window.alert("Please Login First.");
+			return;
+		}
+		jungleServiceAsync.findingGame(userId, new AsyncCallback<Match>(){
 
 			@Override
 			public void onFailure(Throwable caught) {
@@ -312,11 +374,85 @@ public class Presenter {
 			}
 
 			@Override
-			public void onSuccess(String result) {
+			public void onSuccess(Match result) {
+				setCurrentMatch(result);
 			}
 			
 		});
 		view.setLoginMessage("Looking for another player...");
+	}
+	
+	//ready to find a game with opponent ID
+	public void findOpponentWith(String opponentId){
+		if(!ifLogin()){//not login
+			Window.alert("Please Login First.");
+			return;
+		}
+		jungleServiceAsync.findingGameWith(userId, opponentId, new AsyncCallback<Match>(){
+
+			@Override
+			public void onFailure(Throwable caught) {
+				view.setStatus(caught.getMessage());	
+			}
+
+			@Override
+			public void onSuccess(Match result) {
+				setCurrentMatch(result);
+			}
+			
+		});
+	}
+	
+	//load game
+	public void loadGame(Long matchId){
+		if(!ifLogin()){//not login
+			Window.alert("Please Login First.");
+			return;
+		}
+		jungleServiceAsync.loadMatch(matchId, new AsyncCallback<Match>(){
+
+			@Override
+			public void onFailure(Throwable caught) {
+				view.setStatus(caught.getMessage());	
+			}
+
+			@Override
+			public void onSuccess(Match result) {
+				setCurrentMatch(result);
+			}
+			
+		});
+	}
+	
+	//get all matches of userId
+	public void setMatchesOfUser(){
+		if(!ifLogin()){//not login
+			//Window.alert("Please Login First.");
+			return;
+		}
+		jungleServiceAsync.getMatches(userId, new AsyncCallback<Set<Match>>(){
+
+			@Override
+			public void onFailure(Throwable caught) {
+				view.setStatus(caught.getMessage());	
+			}
+
+			@Override
+			public void onSuccess(Set<Match> result) {
+				ArrayList<Match> ongoingMatches = new ArrayList<Match>();
+				ArrayList<Match> finishedMatches = new ArrayList<Match>();
+				matches.clear();
+				for(Match m : result){
+					if(m.ifFinished()) finishedMatches.add(m);
+					else ongoingMatches.add(m);
+				}
+				matches.addAll(ongoingMatches);
+				matches.addAll(finishedMatches);
+			}
+			
+		});
+		
+		view.refresheMatches(matches);
 	}
 	
 	//Create a valueChangeHnader responsible for record browser history

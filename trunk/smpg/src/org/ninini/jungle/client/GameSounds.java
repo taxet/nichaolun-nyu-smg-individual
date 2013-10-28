@@ -30,4 +30,7 @@ public interface GameSounds extends ClientBundle {
 	
 	@Source("sound/Wolf.ogg")
 	DataResource wolfSound();
+	
+	@Source("sound/Bell.ogg")
+	DataResource bellSound();
 }

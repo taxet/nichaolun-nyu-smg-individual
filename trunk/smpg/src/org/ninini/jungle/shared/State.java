@@ -175,6 +175,10 @@ public class State {
 	public boolean inPLayerDen(Position p){
 		return (turn == Color.RED)?inRedDen(p):inBlackDen(p);
 	}
+	//check a position whether is in player's trap
+	public boolean inPlayerTrap(Position p){
+		return (turn == Color.RED)?inRedTrap(p):inBlackTrap(p);
+	}
 	
 	public void changeTurn(){
 		turn = turn.getOpposite();
