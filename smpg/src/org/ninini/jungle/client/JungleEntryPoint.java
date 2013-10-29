@@ -24,7 +24,6 @@ public class JungleEntryPoint implements EntryPoint {
 		final Graphics graphics = new Graphics();
 		final Presenter presenter = new Presenter(graphics);
 		RootPanel.get().add((Graphics)presenter.getView());
-		graphics.initDndHandlers();
 		
 		//initialize loginService
 		LoginServiceAsync loginService = GWT.create(LoginService.class);
@@ -66,6 +65,8 @@ public class JungleEntryPoint implements EntryPoint {
 			}
 			
 		});
+		
+		graphics.initDndHandlers();
 	}
-
+	
 }

@@ -326,12 +326,14 @@ public class Presenter {
 					showState();
 				}*/
 				Match gotMatch = Match.unserializeMatch(message);
+				view.setStatus("message received: "+message);
 				if(currentMatch == null || currentMatch.getMatchId().equals(gotMatch.getMatchId())){
 					//new game to start
 					String oppoId = "";
 					if(userId.equals(gotMatch.getRedPlayer())) oppoId = gotMatch.getBlackPlayer();
 					if(userId.equals(gotMatch.getBlackPlayer())) oppoId = gotMatch.getRedPlayer();
 					String newGameMessage = "";
+					view.setStatus("opponent id: "+oppoId);
 					//new game
 					boolean newGameFlag = true;
 					for(Match m : getMatches()){
@@ -340,7 +342,8 @@ public class Presenter {
 					if(newGameFlag) newGameMessage = oppoId+" wants to have a new game with you.";
 					else newGameMessage = oppoId+" has unpdate the state in match "+gotMatch.getMatchId();
 					view.newGameMessage(newGameMessage);
-					setMatchesOfUser();
+					view.setStatus("newGame or refresh game "+ gotMatch.getMatchId());
+					getMatchesOfUser();
 				}else{
 					//refresh current game
 					setCurrentMatch(gotMatch);
@@ -425,7 +428,7 @@ public class Presenter {
 	}
 	
 	//get all matches of userId
-	public void setMatchesOfUser(){
+	public void getMatchesOfUser(){
 		if(!ifLogin()){//not login
 			//Window.alert("Please Login First.");
 			return;
@@ -851,4 +854,6 @@ public class Presenter {
 		}
 		return -1;
 	}
+	
+	public static String newStateString = "r0020661571117524622264068000862660";
 }
