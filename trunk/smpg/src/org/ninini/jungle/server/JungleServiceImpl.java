@@ -4,6 +4,7 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 import org.ninini.jungle.client.JungleService;
@@ -15,7 +16,6 @@ import org.ninini.jungle.shared.State;
 import com.google.appengine.api.channel.ChannelMessage;
 import com.google.appengine.api.channel.ChannelService;
 import com.google.appengine.api.channel.ChannelServiceFactory;
-import com.google.gwt.user.client.Random;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Work;
@@ -69,7 +69,8 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 		if(waitIds.isEmpty()){//list is empty
 			waitIds.add(id);			
 		}else if(!waitIds.contains(id)){//id not in waiting list
-			int no = Random.nextInt()%waitIds.size();
+			Random random = new Random(System.currentTimeMillis());
+			int no = random.nextInt()%waitIds.size();
 			oppoId = waitIds.get(no);//select an opponent randomly
 			waitIds.remove(no);
 			//load players
@@ -78,15 +79,12 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 			//adding match
 			Long matchId = System.currentTimeMillis();
 			//decide red and black
-			String redPlayer, blackPlayer;
-			if(Random.nextBoolean()){
-				redPlayer = id;
-				blackPlayer = oppoId;
-			}else{
+			String redPlayer = id, blackPlayer = oppoId;
+			if(random.nextBoolean()){
 				redPlayer = oppoId;
 				blackPlayer = id;				
 			}
-			final Match match = new Match(matchId, redPlayer, blackPlayer, Presenter.serializeState(new State()));
+			final Match match = new Match(matchId, redPlayer, blackPlayer, "r0020661571117524622264068000862660");
 			//send msg to both player
 			sendMessage(match);
 			//add to ofy
@@ -114,15 +112,13 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 		//adding match
 		Long matchId = System.currentTimeMillis();
 		//decide red and black
-		String redPlayer, blackPlayer;
-		if(Random.nextBoolean()){
-			redPlayer = id;
-			blackPlayer = oppo;
-		}else{
+		String redPlayer = id, blackPlayer = oppo;
+		if(new Random(matchId).nextBoolean()){
 			redPlayer = oppo;
 			blackPlayer = id;				
 		}
-		final Match match = new Match(matchId, redPlayer, blackPlayer, Presenter.serializeState(new State()));
+		final Match match;
+		match = new Match(matchId, redPlayer, blackPlayer, "r0020661571117524622264068000862660");
 		//send msg to both player
 		sendMessage(match);
 		//add to ofy
