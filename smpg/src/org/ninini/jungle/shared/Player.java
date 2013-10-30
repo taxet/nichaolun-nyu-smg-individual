@@ -20,14 +20,16 @@ public class Player implements Serializable {
 	Set<String> tokens = new HashSet<String>();
 	Set<Long> matches = new HashSet<Long>();
 	boolean online;
+	long latestUpdate;
 	
 	@SuppressWarnings("unused")
 	private Player(){}
 	
-	public Player(String email, String id, boolean online){
+	public Player(String email, String id){
 		this.email = email;
 		this.id = id;
-		this.online = online;
+		online = true;
+		latestUpdate = System.currentTimeMillis();
 	}
 	
 	public String getEmail(){
@@ -48,12 +50,15 @@ public class Player implements Serializable {
 	
 	public void addToken(String token){
 		tokens.add(token);
+		update();
 	}
 	public void addMatches(Long matchId){
 		matches.add(matchId);
+		update();
 	}
 	public void addMatches(Match match){
 		matches.add(match.getMatchId());
+		update();
 	}
 	
 	public void clearTokens(){
@@ -73,11 +78,21 @@ public class Player implements Serializable {
 		return matches.remove(match.getMatchId());
 	}
 	
-	public void logIn(){
+	//connected and disconnected
+	public void connect(){
 		online = true;
+		update();
 	}
-	public void logOut(){
+	public void disconnect(){
 		online = false;
+	}
+	
+	//When a player don't do anything in 3 minutes, then consider him/her log out
+	public boolean isActivate(){
+		return System.currentTimeMillis() - latestUpdate <= 1000*60*3;
+	}
+	public void update(){
+		latestUpdate = System.currentTimeMillis();
 	}
 
 }

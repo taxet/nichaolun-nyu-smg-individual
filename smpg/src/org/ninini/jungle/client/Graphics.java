@@ -170,12 +170,13 @@ public class Graphics extends Composite implements View {
 		if(!presenter.ifLogin()){
 			Window.alert("Please login first.");
 		}else{
+			presenter.setCurrentMatch(null);
 			int selected = matchesList.getSelectedIndex();
 			if(selected == -1){//not selected
 			}else{//select a game
-				Match selectedMatch = presenter.getMatches().get(selected);
-				presenter.loadGame(selectedMatch.getMatchId());
-				if(selectedMatch.ifFinished())
+				Long matchId = Long.parseLong(matchesList.getValue(selected));
+				presenter.loadGame(matchId);
+				if(presenter.getCurrentMatch() != null && presenter.getCurrentMatch().ifFinished())
 					Window.alert("This game is finished.");
 			}
 		}		
@@ -193,7 +194,7 @@ public class Graphics extends Composite implements View {
 	//refresh matches list
 	@Override
 	public void refresheMatches(ArrayList<Match> matches){
-		matches.clear();
+		matchesList.clear();
 		for(Match m : matches){
 			String msg = ""+m.getMatchId();
 			matchesList.addItem(msg);

@@ -8,10 +8,8 @@ import java.util.Random;
 import java.util.Set;
 
 import org.ninini.jungle.client.JungleService;
-import org.ninini.jungle.client.Presenter;
 import org.ninini.jungle.shared.Match;
 import org.ninini.jungle.shared.Player;
-import org.ninini.jungle.shared.State;
 
 import com.google.appengine.api.channel.ChannelMessage;
 import com.google.appengine.api.channel.ChannelService;
@@ -60,6 +58,7 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 		Match match = ofy().load().type(Match.class).id(matchId).now();
 		match.setState(state);
 		ofy().save().entities(match);
+		ofy().load().type(Player.class).id(userId).now().update();
 		sendMessage(match);
 	}
 
@@ -76,6 +75,7 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 			//load players
 			final Player player1 = ofy().load().type(Player.class).id(id).now();
 			final Player player2 = ofy().load().type(Player.class).id(oppoId).now();
+			player1.update();
 			//adding match
 			Long matchId = System.currentTimeMillis();
 			//decide red and black
@@ -88,6 +88,8 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 			//send msg to both player
 			sendMessage(match);
 			//add to ofy
+			player1.addMatches(matchId);
+			player2.addMatches(matchId);
 			ofy().transact(new Work<Void>(){
 
 				@Override
@@ -109,6 +111,7 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 		//load players
 		final Player player1 = ofy().load().type(Player.class).id(id).now();
 		final Player player2 = ofy().load().type(Player.class).id(oppo).now();
+		player1.update();
 		//adding match
 		Long matchId = System.currentTimeMillis();
 		//decide red and black

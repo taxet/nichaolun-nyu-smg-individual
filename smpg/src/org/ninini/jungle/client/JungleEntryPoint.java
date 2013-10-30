@@ -8,11 +8,11 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.appengine.channel.client.Channel;
+/*import com.google.gwt.appengine.channel.client.Channel;
 import com.google.gwt.appengine.channel.client.ChannelFactoryImpl;
 import com.google.gwt.appengine.channel.client.Socket;
 import com.google.gwt.appengine.channel.client.SocketListener;
-import com.google.gwt.appengine.channel.client.ChannelError;
+import com.google.gwt.appengine.channel.client.ChannelError;*/
 
 public class JungleEntryPoint implements EntryPoint {
 
@@ -42,6 +42,7 @@ public class JungleEntryPoint implements EntryPoint {
 					presenter.initMuiltiPlayer(loginInfo);
 					graphics.setLogButton(loginInfo.getLogoutUrl());
 					graphics.setLoginMessage("Welcome, "+loginInfo.getNickname());
+					presenter.getMatchesOfUser();
 				}else{
 					presenter.logOut();
 					graphics.setLogButton(loginInfo.getLoginUrl());
@@ -66,7 +67,7 @@ public class JungleEntryPoint implements EntryPoint {
 			
 		});
 		
-		graphics.initDndHandlers();
+		//graphics.initDndHandlers();
 	}
 	
 }
