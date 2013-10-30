@@ -1,0 +1,87 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+    xmlns:g="urn:import:com.google.gwt.user.client.ui">
+    <ui:style field="css" type="org.ninini.jungle.client.GameCss">
+        .highlighted{
+          outline: dotted blue 2px;
+           }
+        .selected{
+          outline: solid blue 3px;
+           }
+        td img{
+          display: block
+           }
+        .title{
+          margin: auto;
+          text-align: center;
+          font-size: 50px;
+           }
+        .center{
+          margin-left: auto;
+          margin-right: auto;
+           }
+        .redTurn{
+          margin-left: 0px;
+          text-align: left;
+          font-size: 48px;
+          color: #f00;
+           }
+        .blackTurn{
+          margin-left: 0px;
+          text-align: left;
+          font-size: 48px;
+          color: #000;
+           }
+        .whiteText{
+          color: white
+           }
+        .subTitle{
+          font-size: 36px;
+          color: #000;
+          font-weight: bold
+           }
+    </ui:style>
+    <g:HTMLPanel>
+        <g:HorizontalPanel  styleName="{css.center}">
+            <g:cell horizontalAlignment='ALIGN_CENTER'>
+                <g:Image ui:field="logo" />
+            </g:cell>
+            <g:cell horizontalAlignment='ALIGN_CENTER'>
+                <g:Label styleName="{css.title}" text="Jungle Game"/>
+            </g:cell>
+        </g:HorizontalPanel>
+        <g:HorizontalPanel>
+            <g:cell width="350px" horizontalAlignment='ALIGN_LEFT'>
+                <g:VerticalPanel styleName="margin-left:0px;">
+                    <g:Label ui:field="whoseTurn" text="Whose turn" />
+                    <g:Label ui:field="loginMessage" text="Please Login."/>
+                    <g:Label ui:field="newGameMessage" />
+                    <g:Label ui:field="oppoMessage" text="Please find a game."/>
+                    <g:TextBox ui:field="oppoEmail" />
+                    <g:HorizontalPanel>
+                        <g:Button ui:field="quickStart" text="Quick Start" />
+                        <g:Button ui:field="findOpponent" text="Match with" />
+                    </g:HorizontalPanel>
+                    <g:Button ui:field="loginout" text="Log In" />
+                </g:VerticalPanel>
+            </g:cell>
+            <g:cell>
+                <g:AbsolutePanel styleName="{css.center}" ui:field="gamePanel">
+                    <g:Grid ui:field="gameGrid"/>
+                </g:AbsolutePanel>
+            </g:cell>
+            <g:cell width="350px">
+                <g:VerticalPanel>
+                    <g:Label styleName="{css.subTitle}" text="Online Player" />
+                    <g:ListBox width="350px" visibleItemCount="7" ui:field="playersOnline" />
+                    
+                    <g:Label styleName="{css.subTitle}" text="Your matches" />
+                    <g:ListBox width="350px" visibleItemCount="10" ui:field="matchesList" />
+                    <g:Button ui:field="loadGameButton" text="Load Game" />
+                </g:VerticalPanel>
+            </g:cell>
+        </g:HorizontalPanel>
+        
+        <g:Label ui:field="gameStatus" styleName="{css.whiteText}" text="" />
+    </g:HTMLPanel>
+</ui:UiBinder>
