@@ -47,11 +47,11 @@ public class LoginServiceImpl extends RemoteServiceServlet implements LoginServi
 			loginInfo.setToken(channelService.createChannel(loginInfo.getEmailAddress()));
 			//add to userlist
 			if (ofy().load().type(Player.class).id(loginInfo.getEmailAddress()).now() == null) {
-				Player player = new Player(loginInfo.getEmailAddress(), loginInfo.getNickname(), true);
+				Player player = new Player(loginInfo.getEmailAddress(), loginInfo.getNickname());
 				ofy().save().entities(player);
 			}else{
 				Player player = ofy().load().type(Player.class).id(loginInfo.getEmailAddress()).now();
-				player.logIn();
+				player.connect();
 			}
 		}else{
 			loginInfo.setLoggedIn(false);

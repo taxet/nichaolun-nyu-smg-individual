@@ -24,9 +24,9 @@ import com.google.gwt.appengine.channel.client.ChannelFactoryImpl;
 import com.google.gwt.appengine.channel.client.Socket;
 import com.google.gwt.appengine.channel.client.SocketListener;
 import com.google.gwt.core.shared.GWT;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.user.client.History;
+//import com.google.gwt.event.logical.shared.ValueChangeEvent;
+//import com.google.gwt.event.logical.shared.ValueChangeHandler;
+//import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
@@ -69,12 +69,10 @@ public class Presenter {
 	private String userId = "";
 	private Color myColor;
 	private boolean login = false;
-	private boolean gameStart = false;
+	//private boolean gameStart = false;
 	private Match currentMatch;
-	private ArrayList<Match> matches = new ArrayList<Match>();
 	
 	private JungleServiceAsync jungleServiceAsync;
-	private Socket socket;
 
 	public Presenter(){
 		state = new State();
@@ -119,9 +117,6 @@ public class Presenter {
 			return currentMatch.getBlackPlayer();
 		return "";
 	}
-	public ArrayList<Match> getMatches(){
-		return matches;
-	}
 	
 	public void setView(View view){
 		this.view = view;
@@ -153,7 +148,6 @@ public class Presenter {
 	public void setCurrentMatch(Match match){
 		currentMatch = new Match(match);
 		state = unserializeState(currentMatch.getState());
-		gameStart = true;
 		if(userId.equals(currentMatch.getBlackPlayer()))
 			myColor = Color.BLACK;
 		if(userId.equals(currentMatch.getRedPlayer()))
@@ -161,7 +155,7 @@ public class Presenter {
 	}
 	
 	public void selectBoard(int row, int col){
-		if(!gameStart) return;
+		if(currentMatch == null) return;
 		if(state.getGameResult() != null) return;
 		if(myColor == null || !(myColor == state.getTurn())) return;
 		if(selected == null){//no piece is selected
@@ -220,7 +214,7 @@ public class Presenter {
 
 	//start drag event
 	public void dragStartEvent(int row, int col){
-		if(!gameStart) return;
+		if(currentMatch == null) return;
 		if(state.getGameResult() != null) return;
 		if(myColor == null || !(myColor == state.getTurn())) return;
 		Position thisPosition = new Position(row, col);
@@ -229,7 +223,7 @@ public class Presenter {
 	}
 	//drag over event
 	public void dragOverEvent(int row, int col){
-		if(!gameStart) return;
+		if(currentMatch == null) return;
 		if(state.getGameResult() != null) return;
 		if(myColor == null || !(myColor == state.getTurn())) return;
 		Position thisPosition = new Position(row, col);
@@ -244,7 +238,7 @@ public class Presenter {
 	}
 	//drop event
 	public void dropEvent(int row, int col){
-		if(!gameStart) return;
+		if(currentMatch == null) return;
 		if(state.getGameResult() != null) return;
 		if(myColor == null || !(myColor == state.getTurn())) return;
 		Position thisPosition = new Position(row, col);
@@ -280,8 +274,8 @@ public class Presenter {
 		clearSets();
 		//If game is over
 		if(state.getGameResult() != null){
-			gameStart = false;
-			socket.close();
+			currentMatch = null;
+			//socket.close();
 		}		
 		
 		//send to server
@@ -305,11 +299,10 @@ public class Presenter {
 	//initialize channel to Server
 	public void initMuiltiPlayer(LoginInfo loginInfo){
 		jungleServiceAsync = GWT.create(JungleService.class);
-		socket = new ChannelFactoryImpl().createChannel(loginInfo.getToken()).open(new SocketListener(){
+		Socket socket = new ChannelFactoryImpl().createChannel(loginInfo.getToken()).open(new SocketListener(){
 
 			@Override
 			public void onOpen() {
-				view.setStatus("Socket open success.");
 			}
 
 			@Override
@@ -327,7 +320,7 @@ public class Presenter {
 				}*/
 				Match gotMatch = Match.unserializeMatch(message);
 				view.setStatus("message received: "+message);
-				if(currentMatch == null || currentMatch.getMatchId().equals(gotMatch.getMatchId())){
+				if(currentMatch == null){
 					//new game to start
 					String oppoId = "";
 					if(userId.equals(gotMatch.getRedPlayer())) oppoId = gotMatch.getBlackPlayer();
@@ -335,11 +328,25 @@ public class Presenter {
 					String newGameMessage = "";
 					view.setStatus("opponent id: "+oppoId);
 					//new game
-					boolean newGameFlag = true;
-					for(Match m : getMatches()){
-						if(m.getMatchId().equals(gotMatch.getMatchId())) newGameFlag = false;
+					if(gotMatch.getState().equals(newStateString)){
+						newGameMessage = "You will have a new game with "+oppoId;
+						currentMatch = gotMatch;
+						setState(unserializeState(gotMatch.getState()));
 					}
-					if(newGameFlag) newGameMessage = oppoId+" wants to have a new game with you.";
+					else newGameMessage = oppoId+" has unpdate the state in match "+gotMatch.getMatchId();
+					view.newGameMessage(newGameMessage);
+					view.setStatus("newGame or refresh game "+ gotMatch.getMatchId());
+					getMatchesOfUser();
+					
+				}else if(!currentMatch.getMatchId().equals(gotMatch.getMatchId())){
+					//new game to start
+					String oppoId = "";
+					if(userId.equals(gotMatch.getRedPlayer())) oppoId = gotMatch.getBlackPlayer();
+					if(userId.equals(gotMatch.getBlackPlayer())) oppoId = gotMatch.getRedPlayer();
+					String newGameMessage = "";
+					view.setStatus("opponent id: "+oppoId);
+					//new game
+					if(gotMatch.getState().equals(newStateString)) newGameMessage = "You will have a new game with "+oppoId;
 					else newGameMessage = oppoId+" has unpdate the state in match "+gotMatch.getMatchId();
 					view.newGameMessage(newGameMessage);
 					view.setStatus("newGame or refresh game "+ gotMatch.getMatchId());
@@ -351,13 +358,11 @@ public class Presenter {
 			}
 
 			@Override
-			public void onError(ChannelError error) {
-				view.setStatus("Socket open error.");				
+			public void onError(ChannelError error) {		
 			}
 
 			@Override
 			public void onClose() {
-				view.setStatus("Socket close.");
 			}
 			
 		});
@@ -378,7 +383,7 @@ public class Presenter {
 
 			@Override
 			public void onSuccess(Match result) {
-				setCurrentMatch(result);
+				//setCurrentMatch(result);
 			}
 			
 		});
@@ -400,7 +405,7 @@ public class Presenter {
 
 			@Override
 			public void onSuccess(Match result) {
-				setCurrentMatch(result);
+				//setCurrentMatch(result);
 			}
 			
 		});
@@ -421,7 +426,7 @@ public class Presenter {
 
 			@Override
 			public void onSuccess(Match result) {
-				setCurrentMatch(result);
+				//setCurrentMatch(result);
 			}
 			
 		});
@@ -444,18 +449,17 @@ public class Presenter {
 			public void onSuccess(Set<Match> result) {
 				ArrayList<Match> ongoingMatches = new ArrayList<Match>();
 				ArrayList<Match> finishedMatches = new ArrayList<Match>();
-				matches.clear();
+				ArrayList<Match> allMatches = new ArrayList<Match>();
 				for(Match m : result){
 					if(m.ifFinished()) finishedMatches.add(m);
 					else ongoingMatches.add(m);
 				}
-				matches.addAll(ongoingMatches);
-				matches.addAll(finishedMatches);
+				allMatches.addAll(ongoingMatches);
+				allMatches.addAll(finishedMatches);
+				view.refresheMatches(allMatches);
 			}
 			
 		});
-		
-		view.refresheMatches(matches);
 	}
 	
 	//Create a valueChangeHnader responsible for record browser history
