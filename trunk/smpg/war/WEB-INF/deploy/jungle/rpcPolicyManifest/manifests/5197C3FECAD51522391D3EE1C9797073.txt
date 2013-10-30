@@ -1,2 +1,0 @@
-serviceClass: org.ninini.jungle.client.JungleService
-path: 73B17F8E7711B5A9B0813B9AA60CD7CB.gwt.rpc

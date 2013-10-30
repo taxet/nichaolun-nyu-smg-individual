@@ -1,2 +1,0 @@
-serviceClass: org.ninini.jungle.client.LoginService
-path: 3F770C14621AACCDEC801BDFC0BF2A4F.gwt.rpc
