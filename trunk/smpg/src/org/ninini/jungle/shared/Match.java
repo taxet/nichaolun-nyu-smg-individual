@@ -67,7 +67,7 @@ public class Match implements Serializable {
 	}
 	
 	public static String serializeMatch(Match match){
-		String delimiter = "|";
+		String delimiter = "~";
 		StringBuffer stringBuffer = new StringBuffer();
 		stringBuffer.append(match.getMatchId());
 		stringBuffer.append(delimiter);
@@ -80,7 +80,7 @@ public class Match implements Serializable {
 	}
 	
 	public static Match unserializeMatch(String match){
-		String delimiter = "|";
+		String delimiter = "~";
 		String[] msg = match.split(delimiter);
 		Long matchId = Long.parseLong(msg[0], 10);
 		String redPlayer = msg[1];

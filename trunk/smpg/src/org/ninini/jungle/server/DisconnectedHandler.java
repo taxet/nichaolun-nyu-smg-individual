@@ -29,8 +29,10 @@ public class DisconnectedHandler extends HttpServlet {
 		ChannelPresence channelPresence = channelService.parsePresence(req);
 		
 		String userId = channelPresence.clientId();
-		
-		ofy().load().type(Player.class).id(userId).now().disconnect();
+
+		Player player = ofy().load().type(Player.class).id(userId).now();
+		player.disconnect();
+		ofy().save().entity(player);
 	}
 
 }

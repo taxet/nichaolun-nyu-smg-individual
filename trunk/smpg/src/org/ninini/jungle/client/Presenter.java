@@ -57,6 +57,8 @@ public class Presenter {
 		void newGameMessage(String message);
 		//refresh matches list
 		void refresheMatches(ArrayList<Match> matches);
+		//ser opponent message
+		void setOppoMessage(String msg);
 	}
 
 	private View view;
@@ -69,8 +71,8 @@ public class Presenter {
 	private String userId = "";
 	private Color myColor;
 	private boolean login = false;
-	//private boolean gameStart = false;
 	private Match currentMatch;
+	private boolean actionFlag = false;
 	
 	private JungleServiceAsync jungleServiceAsync;
 
@@ -146,12 +148,18 @@ public class Presenter {
 		userId = "";
 	}
 	public void setCurrentMatch(Match match){
-		currentMatch = new Match(match);
-		state = unserializeState(currentMatch.getState());
-		if(userId.equals(currentMatch.getBlackPlayer()))
+		currentMatch = match;
+		String oppoId = "";
+		if(userId.equals(currentMatch.getBlackPlayer())){
 			myColor = Color.BLACK;
-		if(userId.equals(currentMatch.getRedPlayer()))
+			oppoId = currentMatch.getRedPlayer();
+		}
+		if(userId.equals(currentMatch.getRedPlayer())){
 			myColor = Color.RED;
+			oppoId = currentMatch.getBlackPlayer();
+		}
+		setState(unserializeState(currentMatch.getState()));
+		view.setOppoMessage("You are playing with "+oppoId+" in match "+currentMatch.getMatchId());
 	}
 	
 	public void selectBoard(int row, int col){
@@ -279,6 +287,7 @@ public class Presenter {
 		}		
 		
 		//send to server
+		actionFlag = true;
 		jungleServiceAsync.updateState(serializeState(state), userId, currentMatch.getMatchId(),
 				new AsyncCallback<Void>() {
 			@Override
@@ -307,6 +316,11 @@ public class Presenter {
 
 			@Override
 			public void onMessage(String message) {
+				//TODO debug
+				if(message.toCharArray()[0]=='`'){
+					view.setStatus("message Receive: "+message);
+					return;
+				}
 				/*if(!gameStart){//looking for another player
 					String oppoName = message.substring(0, message.length() - 1);
 					char color = message.toCharArray()[message.length() - 1];
@@ -319,42 +333,36 @@ public class Presenter {
 					showState();
 				}*/
 				Match gotMatch = Match.unserializeMatch(message);
-				view.setStatus("message received: "+message);
 				if(currentMatch == null){
 					//new game to start
 					String oppoId = "";
 					if(userId.equals(gotMatch.getRedPlayer())) oppoId = gotMatch.getBlackPlayer();
 					if(userId.equals(gotMatch.getBlackPlayer())) oppoId = gotMatch.getRedPlayer();
 					String newGameMessage = "";
-					view.setStatus("opponent id: "+oppoId);
 					//new game
-					if(gotMatch.getState().equals(newStateString)){
+					if(gotMatch.getState().equals(newStateString))
 						newGameMessage = "You will have a new game with "+oppoId;
-						currentMatch = gotMatch;
-						setState(unserializeState(gotMatch.getState()));
-					}
 					else newGameMessage = oppoId+" has unpdate the state in match "+gotMatch.getMatchId();
-					view.newGameMessage(newGameMessage);
-					view.setStatus("newGame or refresh game "+ gotMatch.getMatchId());
+					if(!actionFlag) view.newGameMessage(newGameMessage);
+					setCurrentMatch(gotMatch);
 					getMatchesOfUser();
 					
 				}else if(!currentMatch.getMatchId().equals(gotMatch.getMatchId())){
-					//new game to start
+					//notify
 					String oppoId = "";
 					if(userId.equals(gotMatch.getRedPlayer())) oppoId = gotMatch.getBlackPlayer();
 					if(userId.equals(gotMatch.getBlackPlayer())) oppoId = gotMatch.getRedPlayer();
 					String newGameMessage = "";
-					view.setStatus("opponent id: "+oppoId);
 					//new game
-					if(gotMatch.getState().equals(newStateString)) newGameMessage = "You will have a new game with "+oppoId;
+					if(gotMatch.getState().equals(newStateString)) newGameMessage = oppoId+" wants to have a new game with you. Match ID: "+gotMatch.getMatchId();
 					else newGameMessage = oppoId+" has unpdate the state in match "+gotMatch.getMatchId();
-					view.newGameMessage(newGameMessage);
-					view.setStatus("newGame or refresh game "+ gotMatch.getMatchId());
+					if(!actionFlag) view.newGameMessage(newGameMessage);
 					getMatchesOfUser();
 				}else{
 					//refresh current game
 					setCurrentMatch(gotMatch);
 				}
+				actionFlag = false;
 			}
 
 			@Override
@@ -374,6 +382,7 @@ public class Presenter {
 			Window.alert("Please Login First.");
 			return;
 		}
+		actionFlag = true;
 		jungleServiceAsync.findingGame(userId, new AsyncCallback<Match>(){
 
 			@Override
@@ -396,6 +405,7 @@ public class Presenter {
 			Window.alert("Please Login First.");
 			return;
 		}
+		actionFlag = true;
 		jungleServiceAsync.findingGameWith(userId, opponentId, new AsyncCallback<Match>(){
 
 			@Override
@@ -417,7 +427,9 @@ public class Presenter {
 			Window.alert("Please Login First.");
 			return;
 		}
-		jungleServiceAsync.loadMatch(matchId, new AsyncCallback<Match>(){
+		actionFlag = true;
+		if(currentMatch != null) currentMatch = null;
+		jungleServiceAsync.loadMatch(userId, matchId, new AsyncCallback<Match>(){
 
 			@Override
 			public void onFailure(Throwable caught) {

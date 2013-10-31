@@ -58,7 +58,9 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 		Match match = ofy().load().type(Match.class).id(matchId).now();
 		match.setState(state);
 		ofy().save().entities(match);
-		ofy().load().type(Player.class).id(userId).now().update();
+		Player player = ofy().load().type(Player.class).id(userId).now();
+		player.update();
+		ofy().save().entity(player);
 		sendMessage(match);
 	}
 
@@ -85,8 +87,6 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 				blackPlayer = id;				
 			}
 			final Match match = new Match(matchId, redPlayer, blackPlayer, "r0020661571117524622264068000862660");
-			//send msg to both player
-			sendMessage(match);
 			//add to ofy
 			player1.addMatches(matchId);
 			player2.addMatches(matchId);
@@ -101,6 +101,8 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 				}
 				
 			});
+			//send msg to both player
+			sendMessage(match);
 			return match;
 		}
 		return null;
@@ -122,8 +124,6 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 		}
 		final Match match;
 		match = new Match(matchId, redPlayer, blackPlayer, "r0020661571117524622264068000862660");
-		//send msg to both player
-		sendMessage(match);
 		//add to ofy
 		player1.addMatches(matchId);
 		player2.addMatches(matchId);
@@ -138,6 +138,8 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 			}
 			
 		});
+		//send msg to both player
+		sendMessage(match);
 		
 		return match;
 	}
@@ -153,8 +155,10 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 	}
 
 	@Override
-	public Match loadMatch(Long matchesId) {
-		return ofy().load().type(Match.class).id(matchesId).now();
+	public Match loadMatch(String id, Long matchesId) {
+		Match foundMatch = ofy().load().type(Match.class).id(matchesId).now();
+		channelService.sendMessage(new ChannelMessage(id, Match.serializeMatch(foundMatch)));
+		return foundMatch;
 	}
 
 }

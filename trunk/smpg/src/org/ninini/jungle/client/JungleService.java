@@ -13,5 +13,5 @@ public interface JungleService extends RemoteService {
 	public Match findingGame(String id);
 	public Match findingGameWith(String id, String oppo);
 	public Set<Match> getMatches(String id);
-	public Match loadMatch(Long matchesId);
+	public Match loadMatch(String id, Long matchesId);
 }

@@ -52,6 +52,7 @@ public class LoginServiceImpl extends RemoteServiceServlet implements LoginServi
 			}else{
 				Player player = ofy().load().type(Player.class).id(loginInfo.getEmailAddress()).now();
 				player.connect();
+				ofy().save().entity(player);
 			}
 		}else{
 			loginInfo.setLoggedIn(false);
