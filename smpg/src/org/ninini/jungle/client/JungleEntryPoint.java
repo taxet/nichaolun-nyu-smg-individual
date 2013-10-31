@@ -67,7 +67,8 @@ public class JungleEntryPoint implements EntryPoint {
 			
 		});
 		
-		//graphics.initDndHandlers();
+		
+		graphics.initDndHandlers();
 	}
 	
 }

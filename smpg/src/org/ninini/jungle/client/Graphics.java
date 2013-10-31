@@ -56,6 +56,7 @@ public class Graphics extends Composite implements View {
 	@UiField GameCss css;
 	@UiField Label whoseTurn;
 	@UiField Label gameStatus;
+	StringBuffer logs = new StringBuffer();
 	@UiField Label loginMessage;
 	@UiField Label newGameMessage;
 	@UiField AbsolutePanel gamePanel;
@@ -170,11 +171,11 @@ public class Graphics extends Composite implements View {
 		if(!presenter.ifLogin()){
 			Window.alert("Please login first.");
 		}else{
-			presenter.setCurrentMatch(null);
 			int selected = matchesList.getSelectedIndex();
 			if(selected == -1){//not selected
 			}else{//select a game
 				Long matchId = Long.parseLong(matchesList.getValue(selected));
+				setStatus(""+matchId);
 				presenter.loadGame(matchId);
 				if(presenter.getCurrentMatch() != null && presenter.getCurrentMatch().ifFinished())
 					Window.alert("This game is finished.");
@@ -429,7 +430,8 @@ public class Graphics extends Composite implements View {
 
 	@Override
 	public void setStatus(String string) {
-		gameStatus.setText(string);
+		logs.append(string+" \n");
+		gameStatus.setText(logs.toString());
 	}
 	
 	@Override
@@ -511,6 +513,11 @@ public class Graphics extends Composite implements View {
 			audio.addSource(gameSound.bellSound().getSafeUri().asString(), AudioElement.TYPE_OGG);
 			audio.play();
 		}
+	}
+	
+	@Override
+	public void setOppoMessage(String msg){
+		oppoMessage.setText(msg);
 	}
 
 }

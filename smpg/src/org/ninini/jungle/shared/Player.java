@@ -16,7 +16,7 @@ public class Player implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	@Id String email;
-	String id;
+	String nickname;
 	Set<String> tokens = new HashSet<String>();
 	Set<Long> matches = new HashSet<Long>();
 	boolean online;
@@ -25,9 +25,9 @@ public class Player implements Serializable {
 	@SuppressWarnings("unused")
 	private Player(){}
 	
-	public Player(String email, String id){
+	public Player(String email, String nickname){
 		this.email = email;
-		this.id = id;
+		this.nickname = nickname;
 		online = true;
 		latestUpdate = System.currentTimeMillis();
 	}
@@ -35,8 +35,8 @@ public class Player implements Serializable {
 	public String getEmail(){
 		return email;
 	}
-	public String getId(){
-		return id;
+	public String getNickname(){
+		return nickname;
 	}
 	public Set<String> getTokens(){
 		return tokens;

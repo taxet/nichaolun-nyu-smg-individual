@@ -11,5 +11,5 @@ public interface JungleServiceAsync {
 	void findingGame(String id, AsyncCallback<Match> callback);
 	void findingGameWith(String id, String oppo, AsyncCallback<Match> callback);
 	void getMatches(String id, AsyncCallback<Set<Match>> callback);
-	void loadMatch(Long matchesId, AsyncCallback<Match> callback);
+	void loadMatch(String id, Long matchesId, AsyncCallback<Match> callback);
 }
