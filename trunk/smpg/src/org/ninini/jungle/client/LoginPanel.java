@@ -7,9 +7,9 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class LoginPanel extends PopupPanel {
 	private VerticalPanel loginPanel = new VerticalPanel();
-	private Label loginLabel = new Label("Please sign in to your Google Account to access the Chess Application.");
-	private Label noteLabel = new Label("Note: Click outside of this popup to close it.");
-	private Anchor signInLink = new Anchor("Sign In");
+	private Label loginLabel = new Label(Graphics.gameMessage.loginPanelMessage());
+	private Label noteLabel = new Label(Graphics.gameMessage.note());
+	private Anchor signInLink = new Anchor(Graphics.gameMessage.signining());
 	
 	public LoginPanel(String url){
 		super(true);

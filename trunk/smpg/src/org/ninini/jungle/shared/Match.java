@@ -1,6 +1,7 @@
 package org.ninini.jungle.shared;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -17,6 +18,7 @@ public class Match implements Serializable {
 	String redPlayer;//Email
 	String blackPlayer;//Email
 	String state;//whose turn and winner can be told in this string
+	Date startDate;
 
 	@SuppressWarnings("unused")
 	private Match(){}
@@ -26,6 +28,7 @@ public class Match implements Serializable {
 		this.redPlayer = redPlayer;
 		this.blackPlayer = blackPlayer;
 		this.state = state;
+		startDate = new Date();
 	}
 	public Match(Match m){
 		this.matchId = m.getMatchId();
@@ -54,6 +57,9 @@ public class Match implements Serializable {
 	}
 	public boolean ifFinished(){
 		return getWinner() == 'r' || getWinner() == 'b';
+	}
+	public Date getStartDate(){
+		return startDate;
 	}
 
 	public void setRedPlayer(String redPlayer){

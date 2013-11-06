@@ -24,11 +24,15 @@ import com.google.gwt.appengine.channel.client.ChannelFactoryImpl;
 import com.google.gwt.appengine.channel.client.Socket;
 import com.google.gwt.appengine.channel.client.SocketListener;
 import com.google.gwt.core.shared.GWT;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 //import com.google.gwt.event.logical.shared.ValueChangeEvent;
 //import com.google.gwt.event.logical.shared.ValueChangeHandler;
 //import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.rpc.XsrfToken;
+import com.google.gwt.user.client.rpc.HasRpcToken;
 
 
 public class Presenter {
@@ -57,9 +61,14 @@ public class Presenter {
 		void newGameMessage(String message);
 		//refresh matches list
 		void refresheMatches(ArrayList<Match> matches);
-		//ser opponent message
+		//set opponent message
 		void setOppoMessage(String msg);
+		//set match date message
+		void setMatchDate(String str);
+		//set rank
+		void setRank(int rank);
 	}
+	
 
 	private View view;
 	private State state;
@@ -159,7 +168,9 @@ public class Presenter {
 			oppoId = currentMatch.getBlackPlayer();
 		}
 		setState(unserializeState(currentMatch.getState()));
-		view.setOppoMessage("You are playing with "+oppoId+" in match "+currentMatch.getMatchId());
+		view.setOppoMessage(Graphics.gameMessage.oppoMsg(oppoId, currentMatch.getMatchId()));
+		String dateMsg = DateTimeFormat.getFormat(PredefinedFormat.DATE_LONG).format(currentMatch.getStartDate());
+		view.setMatchDate(Graphics.gameMessage.matchBeginTime(dateMsg));
 	}
 	
 	public void selectBoard(int row, int col){
@@ -280,11 +291,6 @@ public class Presenter {
 		}
 		//clear hightlighted
 		clearSets();
-		//If game is over
-		if(state.getGameResult() != null){
-			currentMatch = null;
-			//socket.close();
-		}		
 		
 		//send to server
 		actionFlag = true;
@@ -292,7 +298,7 @@ public class Presenter {
 				new AsyncCallback<Void>() {
 			@Override
 			public void onFailure(Throwable caught) {
-				view.setStatus("Get Callback Fail");
+				view.setStatus(Graphics.gameMessage.callbackFail());
 			}
 
 			@Override
@@ -303,11 +309,18 @@ public class Presenter {
 		
 		//refresh match
 		currentMatch.setState(serializeState(state));
+		
+		//If game is over
+		if(state.getGameResult() != null){
+			currentMatch = null;
+			//socket.close();
+		}		
 	}
 	
 	//initialize channel to Server
-	public void initMuiltiPlayer(LoginInfo loginInfo){
+	public void initMuiltiPlayer(LoginInfo loginInfo, XsrfToken xsrfToken){
 		jungleServiceAsync = GWT.create(JungleService.class);
+		((HasRpcToken) jungleServiceAsync).setRpcToken(xsrfToken);
 		Socket socket = new ChannelFactoryImpl().createChannel(loginInfo.getToken()).open(new SocketListener(){
 
 			@Override
@@ -341,8 +354,8 @@ public class Presenter {
 					String newGameMessage = "";
 					//new game
 					if(gotMatch.getState().equals(newStateString))
-						newGameMessage = "You will have a new game with "+oppoId;
-					else newGameMessage = oppoId+" has unpdate the state in match "+gotMatch.getMatchId();
+						newGameMessage = Graphics.gameMessage.newGameWith(oppoId, gotMatch.getMatchId());
+					else newGameMessage = Graphics.gameMessage.updateState(oppoId,gotMatch.getMatchId());
 					if(!actionFlag) view.newGameMessage(newGameMessage);
 					setCurrentMatch(gotMatch);
 					getMatchesOfUser();
@@ -354,8 +367,8 @@ public class Presenter {
 					if(userId.equals(gotMatch.getBlackPlayer())) oppoId = gotMatch.getRedPlayer();
 					String newGameMessage = "";
 					//new game
-					if(gotMatch.getState().equals(newStateString)) newGameMessage = oppoId+" wants to have a new game with you. Match ID: "+gotMatch.getMatchId();
-					else newGameMessage = oppoId+" has unpdate the state in match "+gotMatch.getMatchId();
+					if(gotMatch.getState().equals(newStateString)) newGameMessage = Graphics.gameMessage.newGameApply(oppoId, gotMatch.getMatchId());
+					else newGameMessage = Graphics.gameMessage.updateState(oppoId,gotMatch.getMatchId());
 					if(!actionFlag) view.newGameMessage(newGameMessage);
 					getMatchesOfUser();
 				}else{
@@ -374,12 +387,26 @@ public class Presenter {
 			}
 			
 		});
+		//rank
+		jungleServiceAsync.getRank(userId, new AsyncCallback<Integer>(){
+
+			@Override
+			public void onFailure(Throwable caught) {
+				view.setStatus(caught.getMessage());
+			}
+
+			@Override
+			public void onSuccess(Integer result) {
+				view.setRank(result);
+			}
+			
+		});
 	}
 	
 	//ready to find an opponent randomly
 	public void findOpponend(){
 		if(!ifLogin()){//not login
-			Window.alert("Please Login First.");
+			Window.alert(Graphics.gameMessage.loginAlert());
 			return;
 		}
 		actionFlag = true;
@@ -396,13 +423,13 @@ public class Presenter {
 			}
 			
 		});
-		view.setLoginMessage("Looking for another player...");
+		view.setOppoMessage(Graphics.gameMessage.lookForAnotherPlayer());
 	}
 	
 	//ready to find a game with opponent ID
 	public void findOpponentWith(String opponentId){
 		if(!ifLogin()){//not login
-			Window.alert("Please Login First.");
+			Window.alert(Graphics.gameMessage.loginAlert());
 			return;
 		}
 		actionFlag = true;
@@ -424,7 +451,7 @@ public class Presenter {
 	//load game
 	public void loadGame(Long matchId){
 		if(!ifLogin()){//not login
-			Window.alert("Please Login First.");
+			Window.alert(Graphics.gameMessage.loginAlert());
 			return;
 		}
 		actionFlag = true;
