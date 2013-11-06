@@ -32,7 +32,6 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbsolutePanel;
-import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Grid;
@@ -40,13 +39,13 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 
 public class Graphics extends Composite implements View {
 	private static GameImages gameImages = GWT.create(GameImages.class);
 	private static GameSounds gameSound = GWT.create(GameSounds.class);
+	public static GameMessage gameMessage = GWT.create(GameMessage.class);
 	private static GraphicsUiBinder uiBinder = GWT.create(GraphicsUiBinder.class);
 
 	interface GraphicsUiBinder extends UiBinder<Widget, Graphics>{
@@ -54,11 +53,14 @@ public class Graphics extends Composite implements View {
 	}
 
 	@UiField GameCss css;
+	@UiField Label title;
 	@UiField Label whoseTurn;
 	@UiField Label gameStatus;
 	StringBuffer logs = new StringBuffer();
+	@UiField Label gameDate;
 	@UiField Label loginMessage;
 	@UiField Label newGameMessage;
+	@UiField Label yourRank;
 	@UiField AbsolutePanel gamePanel;
 	@UiField Grid gameGrid;
 	@UiField Image logo;
@@ -70,6 +72,8 @@ public class Graphics extends Composite implements View {
 	@UiField TextBox oppoEmail;
 	@UiField ListBox matchesList;
 	@UiField Button loadGameButton;
+	@UiField Label playersListTitle;
+	@UiField Label matchListTitle;
 	private Image[][] board = new Image[State.ROWS][State.COLS];
 	private Presenter presenter;
 	
@@ -87,6 +91,19 @@ public class Graphics extends Composite implements View {
 		gameGrid.setCellSpacing(0);
 		gameGrid.setBorderWidth(0);
 		gamePanel.setWidgetPosition(gameGrid, 3, 3);
+		
+		//initial text
+		title.setText(Graphics.gameMessage.gameName());
+		whoseTurn.setText(Graphics.gameMessage.whoseTurn());
+		loginMessage.setText(Graphics.gameMessage.login());
+		oppoMessage.setText(Graphics.gameMessage.findGame());
+		quickStart.setText(Graphics.gameMessage.quickStart());
+		findOpponent.setText(Graphics.gameMessage.matchWith());
+		loginout.setText(Graphics.gameMessage.signIn());
+		loadGameButton.setText(Graphics.gameMessage.loadGame());
+		playersListTitle.setText(Graphics.gameMessage.onlinePlayers());
+		matchListTitle.setText(Graphics.gameMessage.yourMatches());
+		yourRank.setText(Graphics.gameMessage.yourRank(0));
 		
 		for(int row = 0; row < State.ROWS; row++){
 			for(int col = 0; col < State.COLS; col++){
@@ -109,7 +126,6 @@ public class Graphics extends Composite implements View {
 				img.addDragStartHandler(new DragStartHandler(){
 					@Override
 					public void onDragStart(DragStartEvent event) {
-						event.setData("text", "dragging");
 						presenter.getView().setStatus("DragStart at ("+rowSelected+","+colSelected+")");
 						presenter.dragStartEvent(rowSelected, colSelected);
 					}
@@ -149,7 +165,7 @@ public class Graphics extends Composite implements View {
 	@UiHandler("quickStart")
 	void quickStartClickHandler(ClickEvent e){
 		if(!presenter.ifLogin()){
-			Window.alert("Please login first.");
+			Window.alert(Graphics.gameMessage.loginAlert());
 		}else{
 			presenter.findOpponend();
 		}
@@ -159,7 +175,7 @@ public class Graphics extends Composite implements View {
 	@UiHandler("findOpponent")
 	void findOpponentClickHandler(ClickEvent e){
 		if(!presenter.ifLogin()){
-			Window.alert("Please login first.");
+			Window.alert(Graphics.gameMessage.loginAlert());
 		}else{
 			presenter.findOpponentWith(oppoEmail.getText());
 		}
@@ -169,7 +185,7 @@ public class Graphics extends Composite implements View {
 	@UiHandler("loadGameButton")
 	void loadGameClickHander(ClickEvent e){
 		if(!presenter.ifLogin()){
-			Window.alert("Please login first.");
+			Window.alert(Graphics.gameMessage.loginAlert());
 		}else{
 			int selected = matchesList.getSelectedIndex();
 			if(selected == -1){//not selected
@@ -178,7 +194,7 @@ public class Graphics extends Composite implements View {
 				setStatus(""+matchId);
 				presenter.loadGame(matchId);
 				if(presenter.getCurrentMatch() != null && presenter.getCurrentMatch().ifFinished())
-					Window.alert("This game is finished.");
+					Window.alert(Graphics.gameMessage.gameFinishAlert());
 			}
 		}		
 	}
@@ -186,9 +202,11 @@ public class Graphics extends Composite implements View {
 	//refresh playersOnline list
 	public void refreshPlayersOnline(Set<Player> players){
 		playersOnline.clear();
+		int itemNo = 0;
 		for(Player p : players){
 			if(!p.getEmail().equals(presenter.getUserId())){//not the player
 				playersOnline.addItem(p.getEmail());
+				Element.as(playersOnline.getElement().getChild(itemNo)).setTitle(Graphics.gameMessage.rank(p.getRank()));
 			}
 		}
 	}
@@ -256,7 +274,7 @@ public class Graphics extends Composite implements View {
 				}
 				
 			});
-			loginout.setText("Sign Out");
+			loginout.setText(Graphics.gameMessage.signOut());
 		}else{//log in
 			handlerRegistration = loginout.addClickHandler(new ClickHandler(){
 
@@ -268,7 +286,7 @@ public class Graphics extends Composite implements View {
 				}
 				
 			});			
-			loginout.setText("Log In");
+			loginout.setText(Graphics.gameMessage.signIn());
 		}
 	}
 
@@ -302,15 +320,15 @@ public class Graphics extends Composite implements View {
 	public void setWhoseTurn(Color color, boolean myTurn) {
 		if(color == Color.BLACK){
 			if(myTurn)
-				whoseTurn.setText("Your Turn");
+				whoseTurn.setText(Graphics.gameMessage.yourTurn());
 			else
-				whoseTurn.setText("Black's Turn");
+				whoseTurn.setText(Graphics.gameMessage.blackTurn());
 			whoseTurn.setStyleName(css.blackTurn());
 		}else if(color == Color.RED){
 			if(myTurn)
-				whoseTurn.setText("Your Turn");
+				whoseTurn.setText(Graphics.gameMessage.yourTurn());
 			else
-				whoseTurn.setText("Red's Turn");
+				whoseTurn.setText(Graphics.gameMessage.redTurn());
 			whoseTurn.setStyleName(css.redTurn());
 		}else {
 			whoseTurn.setText("????'s Turn");
@@ -321,10 +339,10 @@ public class Graphics extends Composite implements View {
 	public void setGameResult(GameResult gameResult) {
 		if(gameResult == null) return;
 		if(gameResult.getWinner() == Color.BLACK){
-			whoseTurn.setText("Black Win");
+			whoseTurn.setText(Graphics.gameMessage.blackWin());
 			whoseTurn.setStyleName(css.blackTurn());
 		}else if(gameResult.getWinner() == Color.RED){
-			whoseTurn.setText("Red Win");
+			whoseTurn.setText(Graphics.gameMessage.redWin());
 			whoseTurn.setStyleName(css.redTurn());
 		}else {
 			whoseTurn.setText("???? Win");
@@ -518,6 +536,16 @@ public class Graphics extends Composite implements View {
 	@Override
 	public void setOppoMessage(String msg){
 		oppoMessage.setText(msg);
+	}
+
+	@Override
+	public void setMatchDate(String str) {
+		gameDate.setText(str);
+	}
+	
+	@Override
+	public void setRank(int rank){
+		this.yourRank.setText(Graphics.gameMessage.yourRank(rank));
 	}
 
 }

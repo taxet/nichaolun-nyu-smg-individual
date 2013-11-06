@@ -7,9 +7,9 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class LogoutPanel extends PopupPanel  {
 	private VerticalPanel logoutPanel = new VerticalPanel();
-	private Label logoutLabel = new Label("Are you sure to log out?.");
-	private Label noteLabel = new Label("Note: Click outside of this popup to close it.");
-	private Anchor signOutLink = new Anchor("Yes");
+	private Label logoutLabel = new Label(Graphics.gameMessage.logoutPanelMessage());
+	private Label noteLabel = new Label(Graphics.gameMessage.note());
+	private Anchor signOutLink = new Anchor(Graphics.gameMessage.yes());
 	
 	public LogoutPanel(String url){
 		super(true);

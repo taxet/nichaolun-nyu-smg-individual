@@ -47,22 +47,24 @@
                 <g:Image ui:field="logo" />
             </g:cell>
             <g:cell horizontalAlignment='ALIGN_CENTER'>
-                <g:Label styleName="{css.title}" text="Jungle Game"/>
+                <g:Label ui:field="title" styleName="{css.title}"/>
             </g:cell>
         </g:HorizontalPanel>
         <g:HorizontalPanel>
             <g:cell width="350px" horizontalAlignment='ALIGN_LEFT'>
                 <g:VerticalPanel styleName="margin-left:0px;">
-                    <g:Label ui:field="whoseTurn" text="Whose turn" />
-                    <g:Label ui:field="loginMessage" text="Please Login."/>
+                    <g:Label ui:field="whoseTurn"/>
+                    <g:Label ui:field="loginMessage"/>
+                    <g:Label ui:field="yourRank"/>
                     <g:Label ui:field="newGameMessage" />
-                    <g:Label ui:field="oppoMessage" text="Please find a game."/>
+                    <g:Label ui:field="oppoMessage"/>
+                    <g:Label ui:field="gameDate"/>
                     <g:TextBox ui:field="oppoEmail" />
                     <g:HorizontalPanel>
-                        <g:Button ui:field="quickStart" text="Quick Start" />
-                        <g:Button ui:field="findOpponent" text="Match with" />
+                        <g:Button ui:field="quickStart"/>
+                        <g:Button ui:field="findOpponent"/>
                     </g:HorizontalPanel>
-                    <g:Button ui:field="loginout" text="Log In" />
+                    <g:Button ui:field="loginout"/>
                 </g:VerticalPanel>
             </g:cell>
             <g:cell>
@@ -72,12 +74,12 @@
             </g:cell>
             <g:cell width="350px">
                 <g:VerticalPanel>
-                    <g:Label styleName="{css.subTitle}" text="Online Player" />
+                    <g:Label styleName="{css.subTitle}" ui:field="playersListTitle" />
                     <g:ListBox width="350px" visibleItemCount="7" ui:field="playersOnline" />
                     
-                    <g:Label styleName="{css.subTitle}" text="Your matches" />
+                    <g:Label styleName="{css.subTitle}" ui:field="matchListTitle" />
                     <g:ListBox width="350px" visibleItemCount="10" ui:field="matchesList" />
-                    <g:Button ui:field="loadGameButton" text="Load Game" />
+                    <g:Button ui:field="loadGameButton" />
                 </g:VerticalPanel>
             </g:cell>
         </g:HorizontalPanel>

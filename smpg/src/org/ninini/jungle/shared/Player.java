@@ -21,6 +21,9 @@ public class Player implements Serializable {
 	Set<Long> matches = new HashSet<Long>();
 	boolean online;
 	long latestUpdate;
+	//Ranking
+	int rank;
+	int rd;
 	
 	@SuppressWarnings("unused")
 	private Player(){}
@@ -30,6 +33,8 @@ public class Player implements Serializable {
 		this.nickname = nickname;
 		online = true;
 		latestUpdate = System.currentTimeMillis();
+		rank = Ranking.DEFAULT_RANK;
+		rd = Ranking.DEFAULT_RD;
 	}
 	
 	public String getEmail(){
@@ -47,18 +52,21 @@ public class Player implements Serializable {
 	public boolean isOnline(){
 		return online;
 	}
+	public int getRank(){
+		return rank;
+	}
+	public int getRD(){
+		return rd;
+	}
 	
 	public void addToken(String token){
 		tokens.add(token);
-		update();
 	}
 	public void addMatches(Long matchId){
 		matches.add(matchId);
-		update();
 	}
 	public void addMatches(Match match){
 		matches.add(match.getMatchId());
-		update();
 	}
 	
 	public void clearTokens(){
@@ -81,7 +89,6 @@ public class Player implements Serializable {
 	//connected and disconnected
 	public void connect(){
 		online = true;
-		update();
 	}
 	public void disconnect(){
 		online = false;
@@ -93,6 +100,13 @@ public class Player implements Serializable {
 	}
 	public void update(){
 		latestUpdate = System.currentTimeMillis();
+	}
+	
+	public void updateRank(int oppoRank, boolean win, Long thisTime){
+		Ranking ranking = new Ranking(rank, rd);
+		ranking.updateRank(oppoRank, win, latestUpdate, thisTime);
+		rank = ranking.getRank();
+		rd = ranking.getRD();
 	}
 
 }

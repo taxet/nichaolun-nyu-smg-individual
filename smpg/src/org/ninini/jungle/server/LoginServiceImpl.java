@@ -15,10 +15,10 @@ import com.google.appengine.api.channel.ChannelServiceFactory;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
-import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.gwt.user.server.rpc.XsrfProtectedServiceServlet;
 import com.googlecode.objectify.ObjectifyService;
 
-public class LoginServiceImpl extends RemoteServiceServlet implements LoginService {
+public class LoginServiceImpl extends XsrfProtectedServiceServlet implements LoginService {
 
 	/**
 	 * 

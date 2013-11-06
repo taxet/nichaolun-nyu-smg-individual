@@ -14,11 +14,11 @@ import org.ninini.jungle.shared.Player;
 import com.google.appengine.api.channel.ChannelMessage;
 import com.google.appengine.api.channel.ChannelService;
 import com.google.appengine.api.channel.ChannelServiceFactory;
-import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.gwt.user.server.rpc.XsrfProtectedServiceServlet;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Work;
 
-public class JungleServiceImpl  extends RemoteServiceServlet implements JungleService {
+public class JungleServiceImpl  extends XsrfProtectedServiceServlet implements JungleService {
 
 	/**
 	 * 
@@ -43,6 +43,22 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 		channelService.sendMessage(new ChannelMessage(id2, Match.serializeMatch(match)));
 	}
 	
+	//update rank of two players in a finished match
+	private void updateRank(Match match, boolean redWin){
+		Long currTime = System.currentTimeMillis();
+		Player red = ofy().load().type(Player.class).id(match.getRedPlayer()).now();
+		Player black = ofy().load().type(Player.class).id(match.getBlackPlayer()).now();
+		if(redWin){
+			red.updateRank(black.getRank(), true, currTime);
+			black.updateRank(black.getRank(), false, currTime);
+		}else{
+			red.updateRank(black.getRank(), false, currTime);
+			black.updateRank(black.getRank(), true, currTime);		
+		}
+		red.update();black.update();
+		ofy().save().entity(red);
+		ofy().save().entity(black);
+	}
 	@Override
 	public void updateState(String state, String userId, Long matchId) {
 		/*String anotherId = gamePlaying.get(id);
@@ -58,10 +74,10 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 		Match match = ofy().load().type(Match.class).id(matchId).now();
 		match.setState(state);
 		ofy().save().entities(match);
-		Player player = ofy().load().type(Player.class).id(userId).now();
-		player.update();
-		ofy().save().entity(player);
 		sendMessage(match);
+		//if state is over
+		if(state.toCharArray()[1] == 'r') updateRank(match, true);
+		if(state.toCharArray()[1] == 'b') updateRank(match, false);
 	}
 
 	@Override
@@ -77,7 +93,6 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 			//load players
 			final Player player1 = ofy().load().type(Player.class).id(id).now();
 			final Player player2 = ofy().load().type(Player.class).id(oppoId).now();
-			player1.update();
 			//adding match
 			Long matchId = System.currentTimeMillis();
 			//decide red and black
@@ -113,7 +128,6 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 		//load players
 		final Player player1 = ofy().load().type(Player.class).id(id).now();
 		final Player player2 = ofy().load().type(Player.class).id(oppo).now();
-		player1.update();
 		//adding match
 		Long matchId = System.currentTimeMillis();
 		//decide red and black
@@ -159,6 +173,11 @@ public class JungleServiceImpl  extends RemoteServiceServlet implements JungleSe
 		Match foundMatch = ofy().load().type(Match.class).id(matchesId).now();
 		channelService.sendMessage(new ChannelMessage(id, Match.serializeMatch(foundMatch)));
 		return foundMatch;
+	}
+
+	@Override
+	public Integer getRank(String userId) {
+		return ofy().load().type(Player.class).id(userId).now().getRank();
 	}
 
 }
