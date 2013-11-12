@@ -63,6 +63,7 @@
                     <g:HorizontalPanel>
                         <g:Button ui:field="quickStart"/>
                         <g:Button ui:field="findOpponent"/>
+                        <g:Button ui:field="playWithAi"/>
                     </g:HorizontalPanel>
                     <g:Button ui:field="loginout"/>
                 </g:VerticalPanel>

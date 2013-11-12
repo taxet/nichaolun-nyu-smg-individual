@@ -2,11 +2,14 @@ package org.ninini.jungle.client;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
+import org.ninini.jungle.shared.AlphaBetaPruning;
 import org.ninini.jungle.shared.Color;
 import org.ninini.jungle.shared.GameResult;
 import org.ninini.jungle.shared.GameResultReason;
+import org.ninini.jungle.shared.Heuristic;
 import org.ninini.jungle.shared.IllegalMove;
 import org.ninini.jungle.shared.Match;
 import org.ninini.jungle.shared.Move;
@@ -18,6 +21,7 @@ import org.ninini.jungle.shared.StateChanger;
 import org.ninini.jungle.shared.StateChangerImpl;
 import org.ninini.jungle.shared.StateExplorer;
 import org.ninini.jungle.shared.StateExplorerImpl;
+import org.ninini.jungle.shared.Timer;
 
 import com.google.gwt.appengine.channel.client.ChannelError;
 import com.google.gwt.appengine.channel.client.ChannelFactoryImpl;
@@ -82,6 +86,8 @@ public class Presenter {
 	private boolean login = false;
 	private Match currentMatch;
 	private boolean actionFlag = false;
+	private boolean withAi = false;
+	private AlphaBetaPruning abp = new AlphaBetaPruning(new Heuristic());
 	
 	private JungleServiceAsync jungleServiceAsync;
 
@@ -174,7 +180,7 @@ public class Presenter {
 	}
 	
 	public void selectBoard(int row, int col){
-		if(currentMatch == null) return;
+		//if(currentMatch == null) return;
 		if(state.getGameResult() != null) return;
 		if(myColor == null || !(myColor == state.getTurn())) return;
 		if(selected == null){//no piece is selected
@@ -233,7 +239,7 @@ public class Presenter {
 
 	//start drag event
 	public void dragStartEvent(int row, int col){
-		if(currentMatch == null) return;
+		//if(currentMatch == null) return;
 		if(state.getGameResult() != null) return;
 		if(myColor == null || !(myColor == state.getTurn())) return;
 		Position thisPosition = new Position(row, col);
@@ -242,7 +248,7 @@ public class Presenter {
 	}
 	//drag over event
 	public void dragOverEvent(int row, int col){
-		if(currentMatch == null) return;
+		//if(currentMatch == null) return;
 		if(state.getGameResult() != null) return;
 		if(myColor == null || !(myColor == state.getTurn())) return;
 		Position thisPosition = new Position(row, col);
@@ -257,7 +263,7 @@ public class Presenter {
 	}
 	//drop event
 	public void dropEvent(int row, int col){
-		if(currentMatch == null) return;
+		//if(currentMatch == null) return;
 		if(state.getGameResult() != null) return;
 		if(myColor == null || !(myColor == state.getTurn())) return;
 		Position thisPosition = new Position(row, col);
@@ -293,28 +299,36 @@ public class Presenter {
 		clearSets();
 		
 		//send to server
-		actionFlag = true;
-		jungleServiceAsync.updateState(serializeState(state), userId, currentMatch.getMatchId(),
-				new AsyncCallback<Void>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				view.setStatus(Graphics.gameMessage.callbackFail());
-			}
+		if(currentMatch != null){
+			actionFlag = true;
+			jungleServiceAsync.updateState(serializeState(state), userId, currentMatch.getMatchId(),
+					new AsyncCallback<Void>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					view.setStatus(Graphics.gameMessage.callbackFail());
+				}
 
-			@Override
-			public void onSuccess(Void result) {
-				//nothing
-			}
-		});
+				@Override
+				public void onSuccess(Void result) {
+					//nothing
+				}
+			});
 		
-		//refresh match
-		currentMatch.setState(serializeState(state));
+			//refresh match
+			currentMatch.setState(serializeState(state));
+		}
 		
+		//ai move
+		if(withAi && !state.getTurn().equals(myColor))
+			aiMove();
+			
 		//If game is over
 		if(state.getGameResult() != null){
 			currentMatch = null;
+			withAi = false;
 			//socket.close();
 		}		
+		
 	}
 	
 	//initialize channel to Server
@@ -346,7 +360,7 @@ public class Presenter {
 					showState();
 				}*/
 				Match gotMatch = Match.unserializeMatch(message);
-				if(currentMatch == null){
+				if(currentMatch == null && (!withAi)){
 					//new game to start
 					String oppoId = "";
 					if(userId.equals(gotMatch.getRedPlayer())) oppoId = gotMatch.getBlackPlayer();
@@ -360,7 +374,7 @@ public class Presenter {
 					setCurrentMatch(gotMatch);
 					getMatchesOfUser();
 					
-				}else if(!currentMatch.getMatchId().equals(gotMatch.getMatchId())){
+				}else if(currentMatch == null || !currentMatch.getMatchId().equals(gotMatch.getMatchId())){
 					//notify
 					String oppoId = "";
 					if(userId.equals(gotMatch.getRedPlayer())) oppoId = gotMatch.getBlackPlayer();
@@ -499,6 +513,25 @@ public class Presenter {
 			}
 			
 		});
+	}
+	
+	public void playWithAi() {
+		withAi = true;
+		//initialize game
+		if(new Random().nextBoolean())
+			myColor = Color.RED;
+		else myColor = Color.BLACK;
+		this.setState(new State());
+		
+		if(!state.getTurn().equals(myColor))
+			aiMove();
+	}
+	
+	private void aiMove(){
+		Timer timer = new Timer(1000);
+		Move bestMove = abp.findBestMove(state, 2, timer);
+		stateChanger.makeMove(state, bestMove);
+		this.showState();
 	}
 	
 	//Create a valueChangeHnader responsible for record browser history
@@ -899,4 +932,5 @@ public class Presenter {
 	}
 	
 	public static String newStateString = "r0020661571117524622264068000862660";
+
 }

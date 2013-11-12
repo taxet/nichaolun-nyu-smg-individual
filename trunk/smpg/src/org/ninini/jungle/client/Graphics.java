@@ -74,6 +74,7 @@ public class Graphics extends Composite implements View {
 	@UiField Button loadGameButton;
 	@UiField Label playersListTitle;
 	@UiField Label matchListTitle;
+	@UiField Button playWithAi;
 	private Image[][] board = new Image[State.ROWS][State.COLS];
 	private Presenter presenter;
 	
@@ -104,6 +105,8 @@ public class Graphics extends Composite implements View {
 		playersListTitle.setText(Graphics.gameMessage.onlinePlayers());
 		matchListTitle.setText(Graphics.gameMessage.yourMatches());
 		yourRank.setText(Graphics.gameMessage.yourRank(0));
+		playWithAi.setText(Graphics.gameMessage.withAi());
+		playWithAi.setTitle(Graphics.gameMessage.withAiNote());
 		
 		for(int row = 0; row < State.ROWS; row++){
 			for(int col = 0; col < State.COLS; col++){
@@ -197,6 +200,12 @@ public class Graphics extends Composite implements View {
 					Window.alert(Graphics.gameMessage.gameFinishAlert());
 			}
 		}		
+	}
+	
+	//play with AI button
+	@UiHandler("playWithAi")
+	void playWithAiClickHander(ClickEvent e){
+		presenter.playWithAi();
 	}
 	
 	//refresh playersOnline list

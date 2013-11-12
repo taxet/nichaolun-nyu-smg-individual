@@ -74,4 +74,8 @@ public interface GameMessage extends Messages {
 	String yes();
 	@DefaultMessage("Your Rank: {0}")
 	String yourRank(int rank);
+	@DefaultMessage("With Ai")
+	String withAi();
+	@DefaultMessage("Note: playing with AI does not update the state to server.")
+	String withAiNote();
 }

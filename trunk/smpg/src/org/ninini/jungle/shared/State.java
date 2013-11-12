@@ -94,6 +94,25 @@ public class State {
 		}
 		this.gameResult = gameResult;
 	}
+	public State(State state){
+		remainingPieces[0] = 0;
+		remainingPieces[1] = 0;		
+		this.turn = checkNotNull(state.getTurn());
+		for(int r = 0 ;r < ROWS; r++){
+			for(int c = 0; c < COLS; c++){
+				this.board[r][c] = state.getPiece(r, c);
+				if(board[r][c] != null){
+					//inRiver
+					if(inRiver0(r,c)) ratInRiver[0] = true;
+					if(inRiver1(r,c)) ratInRiver[1] = true;
+					//remaining
+					if(board[r][c].getColor() == Color.RED) remainingPieces[0]++;
+					if(board[r][c].getColor() == Color.BLACK) remainingPieces[1]++; 
+				}
+			}
+		}
+		this.gameResult = state.getGameResult();
+	}
 	
 	public Color getTurn(){
 		return turn;
