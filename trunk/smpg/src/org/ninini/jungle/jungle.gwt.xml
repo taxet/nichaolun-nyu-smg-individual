@@ -25,6 +25,8 @@
   <inherits name='com.google.gwt.inject.Inject'/>
   <inherits name='com.google.gwt.safehtml.SafeHtml' />
   <inherits name="com.google.gwt.i18n.I18N"/>
+  <inherits name="com.google.gwt.json.JSON" /> 
+  <inherits name="com.gwtfb.GwtFB" /> 
   
   <!-- Specify the app entry point class.                         -->
   <entry-point class='org.ninini.jungle.client.JungleEntryPoint'/>

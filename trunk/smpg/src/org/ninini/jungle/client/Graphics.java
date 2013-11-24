@@ -1,21 +1,16 @@
 package org.ninini.jungle.client;
 
-import java.util.ArrayList;
-import java.util.Set;
-
 import org.ninini.jungle.client.Presenter.View;
 import org.ninini.jungle.shared.Color;
+import org.ninini.jungle.shared.FbInfo;
 import org.ninini.jungle.shared.GameResult;
-import org.ninini.jungle.shared.Match;
 import org.ninini.jungle.shared.Move;
 import org.ninini.jungle.shared.Piece;
-import org.ninini.jungle.shared.Player;
 import org.ninini.jungle.shared.State;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.AudioElement;
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.DragOverEvent;
@@ -24,6 +19,10 @@ import com.google.gwt.event.dom.client.DragStartEvent;
 import com.google.gwt.event.dom.client.DragStartHandler;
 import com.google.gwt.event.dom.client.DropEvent;
 import com.google.gwt.event.dom.client.DropHandler;
+import com.google.gwt.event.dom.client.MouseOutEvent;
+import com.google.gwt.event.dom.client.MouseOutHandler;
+import com.google.gwt.event.dom.client.MouseOverEvent;
+import com.google.gwt.event.dom.client.MouseOverHandler;
 import com.google.gwt.media.client.Audio;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -31,16 +30,22 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.web.bindery.event.shared.HandlerRegistration;
+import com.gwtfb.client.JSOModel;
+import com.gwtfb.sdk.FBCore;
+import com.gwtfb.sdk.FBXfbml;
 
 public class Graphics extends Composite implements View {
 	private static GameImages gameImages = GWT.create(GameImages.class);
@@ -57,6 +62,7 @@ public class Graphics extends Composite implements View {
 	@UiField Label whoseTurn;
 	@UiField Label gameStatus;
 	StringBuffer logs = new StringBuffer();
+	@UiField Image avatar;
 	@UiField Label gameDate;
 	@UiField Label loginMessage;
 	@UiField Label newGameMessage;
@@ -64,23 +70,28 @@ public class Graphics extends Composite implements View {
 	@UiField AbsolutePanel gamePanel;
 	@UiField Grid gameGrid;
 	@UiField Image logo;
-	@UiField Button loginout;
-	@UiField Button quickStart;
-	@UiField Button findOpponent;
-	@UiField ListBox playersOnline;
+	@UiField HorizontalPanel loginout;
+	//@UiField Button quickStart;
+	//@UiField Button findOpponent;
 	@UiField Label oppoMessage;
 	@UiField TextBox oppoEmail;
+	/*@UiField ListBox playersOnline;
 	@UiField ListBox matchesList;
 	@UiField Button loadGameButton;
 	@UiField Label playersListTitle;
-	@UiField Label matchListTitle;
+	@UiField Label matchListTitle;*/
+	@UiField Label friend;
+	@UiField VerticalPanel friendList;
 	@UiField Button playWithAi;
+	@UiField HorizontalPanel likeButton;
+	@UiField Button invite;
 	private Image[][] board = new Image[State.ROWS][State.COLS];
 	private Presenter presenter;
 	
 	private PieceMovingAnimation animation;
 	
-	private HandlerRegistration handlerRegistration;
+	//private HandlerRegistration handlerRegistration;
+	
 	
 	public Graphics(){		
 		initWidget(uiBinder.createAndBindUi(this));
@@ -98,15 +109,17 @@ public class Graphics extends Composite implements View {
 		whoseTurn.setText(Graphics.gameMessage.whoseTurn());
 		loginMessage.setText(Graphics.gameMessage.login());
 		oppoMessage.setText(Graphics.gameMessage.findGame());
-		quickStart.setText(Graphics.gameMessage.quickStart());
-		findOpponent.setText(Graphics.gameMessage.matchWith());
-		loginout.setText(Graphics.gameMessage.signIn());
-		loadGameButton.setText(Graphics.gameMessage.loadGame());
-		playersListTitle.setText(Graphics.gameMessage.onlinePlayers());
-		matchListTitle.setText(Graphics.gameMessage.yourMatches());
-		yourRank.setText(Graphics.gameMessage.yourRank(0));
+		//quickStart.setText(Graphics.gameMessage.quickStart());
+		//findOpponent.setText(Graphics.gameMessage.matchWith());
+		//loadGameButton.setText(Graphics.gameMessage.loadGame());
+		//playersListTitle.setText(Graphics.gameMessage.onlinePlayers());
+		//matchListTitle.setText(Graphics.gameMessage.yourMatches());
+		friend.setText(Graphics.gameMessage.yourFriends());
+		yourRank.setText(Graphics.gameMessage.yourRank(0,0));
 		playWithAi.setText(Graphics.gameMessage.withAi());
 		playWithAi.setTitle(Graphics.gameMessage.withAiNote());
+		avatar.setPixelSize(50, 50);
+		invite.setText(Graphics.gameMessage.invite());
 		
 		for(int row = 0; row < State.ROWS; row++){
 			for(int col = 0; col < State.COLS; col++){
@@ -150,7 +163,7 @@ public class Graphics extends Composite implements View {
 		
 		//initialize other handlers
 		//initialize playersOnline changeHandler
-		playersOnline.addChangeHandler(new ChangeHandler(){
+		/*playersOnline.addChangeHandler(new ChangeHandler(){
 			//when a email address selected, the oppoEmail will set text to this email
 			@Override
 			public void onChange(ChangeEvent event) {
@@ -159,13 +172,16 @@ public class Graphics extends Composite implements View {
 					oppoEmail.setText(playersOnline.getValue(selected));
 			}
 			
-		});
+		});*/
 		
+		//add facebook like button
+		HTML fbLike = new HTML("<div class=\"fb-like\" data-href=\"http://10.socialgamescourse.appspot.com\" data-layout=\"standard\" data-action=\"like\" data-show-faces=\"true\" data-share=\"true\"></div>");
+		likeButton.add(fbLike);
 	}
 	
 	//set Button Click Handler
 	//quick start button
-	@UiHandler("quickStart")
+	/*@UiHandler("quickStart")
 	void quickStartClickHandler(ClickEvent e){
 		if(!presenter.ifLogin()){
 			Window.alert(Graphics.gameMessage.loginAlert());
@@ -200,7 +216,7 @@ public class Graphics extends Composite implements View {
 					Window.alert(Graphics.gameMessage.gameFinishAlert());
 			}
 		}		
-	}
+	}*/
 	
 	//play with AI button
 	@UiHandler("playWithAi")
@@ -209,24 +225,46 @@ public class Graphics extends Composite implements View {
 	}
 	
 	//refresh playersOnline list
-	public void refreshPlayersOnline(Set<Player> players){
+	/*public void refreshPlayersOnline(Set<Player> players){
 		playersOnline.clear();
 		int itemNo = 0;
 		for(Player p : players){
-			if(!p.getEmail().equals(presenter.getUserId())){//not the player
-				playersOnline.addItem(p.getEmail());
+			if(!p.getUID().equals(presenter.getUserId())){//not the player
+				playersOnline.addItem(p.getUID());
 				Element.as(playersOnline.getElement().getChild(itemNo)).setTitle(Graphics.gameMessage.rank(p.getRank()));
 			}
 		}
-	}
+	}*/
 	//refresh matches list
-	@Override
+	/*@Override
 	public void refresheMatches(ArrayList<Match> matches){
 		matchesList.clear();
 		for(Match m : matches){
 			String msg = ""+m.getMatchId();
 			matchesList.addItem(msg);
 		}
+	}*/
+	@UiHandler("invite")
+	void inviteClickHandler(ClickEvent e){
+		final FBCore fbCore = GWT.create(FBCore.class);
+		FbRequest request = (FbRequest)JavaScriptObject.createObject().cast();
+		request.setMethod("apprequests");
+		request.setTitle("Jungle Game");
+		request.setMessage("I want to play jungle game with you.");
+		fbCore.ui(request, new AsyncCallback<JavaScriptObject>(){
+
+			@Override
+			public void onFailure(Throwable caught) {
+				Window.alert("Invite failed");
+			}
+
+			@Override
+			public void onSuccess(JavaScriptObject result) {
+				JSOModel jsm = result.cast();
+				Window.alert("Invite Success");
+			}
+			
+		});
 	}
 	
 	//initialize drag&drop handlers of every image in board
@@ -269,7 +307,7 @@ public class Graphics extends Composite implements View {
 	}
 	
 	//add click handler to loginout Button
-	public void setLogButton(final String url){
+	/*public void setLogButton(){
 		if(handlerRegistration != null) handlerRegistration.removeHandler();
 		if(presenter.ifLogin()){//Sign out
 			handlerRegistration = loginout.addClickHandler(new ClickHandler(){
@@ -297,6 +335,20 @@ public class Graphics extends Composite implements View {
 			});			
 			loginout.setText(Graphics.gameMessage.signIn());
 		}
+	}*/
+	public void setLoginButton(){
+		if(!presenter.ifLogin()){//if logged in, do nothing, else loging in
+			loginout.clear();
+			HTML fbLoginButton = new HTML("<fb:login-button width=\"200\" onlogin=\"window.location.reload()\"></fb:login-button>");
+			loginout.add(fbLoginButton);
+			FBXfbml.parse(loginout);
+		}
+	}
+	public void setLogoutButton(Widget w){
+		if(presenter.ifLogin()){//if not logged in, do nothing
+			loginout.clear();
+			loginout.add(w);
+		}		
 	}
 
 	
@@ -307,6 +359,11 @@ public class Graphics extends Composite implements View {
 	public Image getBoard(int row, int col){
 		return board[row][col];
 	}
+	
+	public void setAvatar(String avatarUrl){
+		avatar.setUrl(avatarUrl);
+	}
+	
 	
 	@Override
 	public void setPiece(int row, int col, Piece piece) {
@@ -366,7 +423,7 @@ public class Graphics extends Composite implements View {
 		audio.play();
 		
 		//enable findopponent button
-		quickStart.setEnabled(true);
+		//quickStart.setEnabled(true);
 	}
 	
 	//Get a block in board without piece on it
@@ -553,8 +610,59 @@ public class Graphics extends Composite implements View {
 	}
 	
 	@Override
-	public void setRank(int rank){
-		this.yourRank.setText(Graphics.gameMessage.yourRank(rank));
+	public void setRank(int rank, int rd){
+		this.yourRank.setText(Graphics.gameMessage.yourRank(rank-2*rd, rank+2*rd));
+	}
+
+	@Override
+	public void clearFriendList() {
+		friendList.clear();
+	}
+
+	@Override
+	public void addFriend(final FbInfo friend) {
+		// TODO Auto-generated method stub
+		HorizontalPanel friendItem = new HorizontalPanel();
+		friendItem.setSize("350px", "50px");
+		Image avatar = new Image();
+		avatar.setSize("50px", "50px");
+		avatar.setUrl(friend.getAvatarUrl());
+		friendItem.add(avatar);
+		VerticalPanel info = new VerticalPanel();
+		info.setSize("300px", "50px");
+		Label name = new Label();
+		name.setText(friend.getName());
+		Label rank = new Label();
+		rank.setText(gameMessage.rank(friend.getRank()-2*friend.getRd(), friend.getRank()+2*friend.getRd()));
+		info.add(name);
+		info.add(rank);
+		friendItem.add(info);
+		final FocusPanel wrapper = new FocusPanel();
+		wrapper.setSize("350px", "50px");
+		wrapper.add(friendItem);
+		wrapper.addClickHandler(new ClickHandler(){
+			@Override
+			public void onClick(ClickEvent event) {
+				presenter.playWith(friend.getFbId());
+			}			
+		});
+		wrapper.addMouseOverHandler(new MouseOverHandler(){
+
+			@Override
+			public void onMouseOver(MouseOverEvent event) {
+				wrapper.setStyleName(css.highlighted());
+			}
+			
+		});
+		wrapper.addMouseOutHandler(new MouseOutHandler(){
+
+			@Override
+			public void onMouseOut(MouseOutEvent event) {
+				wrapper.removeStyleName(css.highlighted());
+			}
+			
+		});
+		friendList.add(wrapper);
 	}
 
 }

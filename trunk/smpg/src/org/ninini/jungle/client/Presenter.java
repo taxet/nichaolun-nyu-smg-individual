@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.ninini.jungle.shared.AlphaBetaPruning;
 import org.ninini.jungle.shared.Color;
+import org.ninini.jungle.shared.FbInfo;
 import org.ninini.jungle.shared.GameResult;
 import org.ninini.jungle.shared.GameResultReason;
 import org.ninini.jungle.shared.Heuristic;
@@ -64,13 +65,17 @@ public class Presenter {
 		//new game message
 		void newGameMessage(String message);
 		//refresh matches list
-		void refresheMatches(ArrayList<Match> matches);
+		//void refresheMatches(ArrayList<Match> matches);
 		//set opponent message
 		void setOppoMessage(String msg);
 		//set match date message
 		void setMatchDate(String str);
 		//set rank
-		void setRank(int rank);
+		void setRank(int rank, int id);
+		//clear friendList
+		void clearFriendList();
+		//add an item to FriendList
+		void addFriend(FbInfo friend);
 	}
 	
 
@@ -332,7 +337,7 @@ public class Presenter {
 	}
 	
 	//initialize channel to Server
-	public void initMuiltiPlayer(LoginInfo loginInfo, XsrfToken xsrfToken){
+	public void initMuiltiPlayer(final LoginInfo loginInfo, XsrfToken xsrfToken){
 		jungleServiceAsync = GWT.create(JungleService.class);
 		((HasRpcToken) jungleServiceAsync).setRpcToken(xsrfToken);
 		Socket socket = new ChannelFactoryImpl().createChannel(loginInfo.getToken()).open(new SocketListener(){
@@ -391,7 +396,7 @@ public class Presenter {
 				}
 				actionFlag = false;
 			}
-
+			
 			@Override
 			public void onError(ChannelError error) {		
 			}
@@ -402,7 +407,7 @@ public class Presenter {
 			
 		});
 		//rank
-		jungleServiceAsync.getRank(userId, new AsyncCallback<Integer>(){
+		jungleServiceAsync.getRank(userId, new AsyncCallback<Integer[]>(){
 
 			@Override
 			public void onFailure(Throwable caught) {
@@ -410,8 +415,8 @@ public class Presenter {
 			}
 
 			@Override
-			public void onSuccess(Integer result) {
-				view.setRank(result);
+			public void onSuccess(Integer[] result) {
+				view.setRank(result[0], result[1]);
 			}
 			
 		});
@@ -509,7 +514,7 @@ public class Presenter {
 				}
 				allMatches.addAll(ongoingMatches);
 				allMatches.addAll(finishedMatches);
-				view.refresheMatches(allMatches);
+				//view.refresheMatches(allMatches);
 			}
 			
 		});
@@ -532,6 +537,48 @@ public class Presenter {
 		Move bestMove = abp.findBestMove(state, 2, timer);
 		stateChanger.makeMove(state, bestMove);
 		this.showState();
+	}
+	
+	//set friend list to graphics
+	public void setFriendList(Set<FbInfo> friendList){
+		view.clearFriendList();
+		jungleServiceAsync.getRanks(friendList, new AsyncCallback<Set<FbInfo>>(){
+			
+			@Override
+			public void onFailure(Throwable caught) {
+				view.setStatus(caught.getMessage());
+			}
+			@Override
+			public void onSuccess(Set<FbInfo> result) {
+				for(FbInfo friendsFbInfo : result){
+					view.addFriend(friendsFbInfo);
+				}
+			}
+				
+		});
+
+	}
+	
+	//play new game or load game with facebook friends
+	public void playWith(final String oppoFbId){
+		currentMatch = null;
+		jungleServiceAsync.fbPlay(userId, oppoFbId, new AsyncCallback<Match>(){
+
+			@Override
+			public void onFailure(Throwable caught) {
+				view.setStatus(caught.getMessage());
+			}
+
+			@Override
+			public void onSuccess(Match result) {
+				if(result == null){
+					//TODO add invitation
+					InvationPanel invationPanel = new InvationPanel(oppoFbId);
+					invationPanel.center();
+				}
+			}
+			
+		});
 	}
 	
 	//Create a valueChangeHnader responsible for record browser history

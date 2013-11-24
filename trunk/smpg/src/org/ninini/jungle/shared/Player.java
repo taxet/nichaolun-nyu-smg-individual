@@ -1,9 +1,12 @@
 package org.ninini.jungle.shared;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 
@@ -15,9 +18,10 @@ public class Player implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	@Id String email;
+	@Id String uID;//facebook UID
 	String nickname;
-	Set<String> tokens = new HashSet<String>();
+	@EmbedMap
+	Map<String, Long> friendMatches = new HashMap<String, Long>();
 	Set<Long> matches = new HashSet<Long>();
 	boolean online;
 	long latestUpdate;
@@ -28,8 +32,8 @@ public class Player implements Serializable {
 	@SuppressWarnings("unused")
 	private Player(){}
 	
-	public Player(String email, String nickname){
-		this.email = email;
+	public Player(String uID, String nickname){
+		this.uID = uID;
 		this.nickname = nickname;
 		online = true;
 		latestUpdate = System.currentTimeMillis();
@@ -37,14 +41,14 @@ public class Player implements Serializable {
 		rd = Ranking.DEFAULT_RD;
 	}
 	
-	public String getEmail(){
-		return email;
+	public String getUID(){
+		return uID;
 	}
 	public String getNickname(){
 		return nickname;
 	}
-	public Set<String> getTokens(){
-		return tokens;
+	public Map<String,Long> getFriendMatches(){
+		return friendMatches;
 	}
 	public Set<Long> getMatches(){
 		return matches;
@@ -59,26 +63,26 @@ public class Player implements Serializable {
 		return rd;
 	}
 	
-	public void addToken(String token){
-		tokens.add(token);
-	}
-	public void addMatches(Long matchId){
-		matches.add(matchId);
-	}
 	public void addMatches(Match match){
 		matches.add(match.getMatchId());
+		String oppoId = "";
+		if(match.getRedPlayer().equals(this.uID))
+			oppoId = match.getBlackPlayer();
+		else oppoId = match.getRedPlayer();
+		friendMatches.put(oppoId, match.getMatchId());
 	}
-	
-	public void clearTokens(){
-		tokens.clear();
+	public void matchesOver(Match match){
+		String oppoId = "";
+		if(match.getRedPlayer().equals(this.uID))
+			oppoId = match.getBlackPlayer();
+		else oppoId = match.getRedPlayer();
+		friendMatches.remove(oppoId);
 	}
+
 	public void clearMatches(){
 		matches.clear();
 	}
 	
-	public boolean removeFromTokens(String token){
-		return tokens.remove(token);
-	}
 	public boolean removeFromMatches(Long matchId){
 		return matches.remove(matchId);
 	}
@@ -92,6 +96,10 @@ public class Player implements Serializable {
 	}
 	public void disconnect(){
 		online = false;
+	}
+	
+	public void setNickName(String newName){
+		this.nickname = newName;
 	}
 	
 	//When a player don't do anything in 3 minutes, then consider him/her log out

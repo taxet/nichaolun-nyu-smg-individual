@@ -16,5 +16,6 @@
 	<classpathentry kind="lib" path="E:/android/workspace/smpg/war/WEB-INF/lib/javax.inject.jar"/>
 	<classpathentry kind="lib" path="E:/android/workspace/smpg/war/WEB-INF/lib/gwt-gae-channel-2.0.0.jar"/>
 	<classpathentry kind="lib" path="E:/android/workspace/smpg/war/WEB-INF/lib/mockito-all-1.9.5.jar"/>
+	<classpathentry kind="lib" path="E:/android/workspace/smpg/war/WEB-INF/lib/gwtfb.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

@@ -5,6 +5,7 @@ import java.util.Set;
 import com.google.gwt.user.client.rpc.XsrfProtectedService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
+import org.ninini.jungle.shared.FbInfo;
 import org.ninini.jungle.shared.Match;
 
 @RemoteServiceRelativePath("JungleService")
@@ -14,5 +15,7 @@ public interface JungleService extends XsrfProtectedService {
 	public Match findingGameWith(String id, String oppo);
 	public Set<Match> getMatches(String id);
 	public Match loadMatch(String id, Long matchesId);
-	public Integer getRank(String userId);
+	public Integer[] getRank(String userId);
+	public Set<FbInfo> getRanks(Set<FbInfo> fbInfos);
+	public Match fbPlay(String id, String oppoId);
 }
