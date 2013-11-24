@@ -9,6 +9,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 @RemoteServiceRelativePath("login")
 public interface LoginService extends XsrfProtectedService {
-	public LoginInfo login(String requestUrl);
-	public Set<Player> onlineList(String myEmail);
+	/*public LoginInfo login(String requestUrl);
+	public Set<Player> onlineList(String myEmail);*/
+	public String fbLogin(LoginInfo fbInfo);
 }

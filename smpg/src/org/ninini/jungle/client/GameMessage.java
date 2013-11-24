@@ -3,6 +3,7 @@ package org.ninini.jungle.client;
 
 import com.google.gwt.i18n.client.LocalizableResource.DefaultLocale;
 import com.google.gwt.i18n.client.LocalizableResource.Generate;
+import com.google.gwt.i18n.client.Messages.DefaultMessage;
 import com.google.gwt.i18n.client.Messages;
 
 @Generate(format = "com.google.gwt.i18n.rebind.format.PropertiesFormat")
@@ -24,8 +25,8 @@ public interface GameMessage extends Messages {
 	String onlinePlayers();
 	@DefaultMessage("Your matches")
 	String yourMatches();
-	@DefaultMessage("Rank: {0}")
-	String rank(int rank);
+	@DefaultMessage("Rank: [{0}, {1}]")
+	String rank(int rankLow, int rankHigh);
 	@DefaultMessage("Load Game")
 	String loadGame();
 	@DefaultMessage("Please login first.")
@@ -58,11 +59,11 @@ public interface GameMessage extends Messages {
 	String newGameApply(String oppoId, Long matchId);
 	@DefaultMessage("Looking for another player...")
 	String lookForAnotherPlayer();
-	@DefaultMessage("Welcome, {0}")
-	String welcomMsg(String nickname);
+	@DefaultMessage("Welcome, {0}. Yor facebook UID is : {1}")
+	String welcomMsg(String nickname, String fbUid);
 	@DefaultMessage("This match beginned in {0}")
 	String matchBeginTime(String dateMsg);
-	@DefaultMessage("Please sign in to your Google Account to access the Jungle Game Application.")
+	@DefaultMessage("Please sign in to your Facebook Account to access the Jungle Game Application.")
 	String loginPanelMessage();
 	@DefaultMessage("Sign in")
 	String signining();
@@ -72,10 +73,18 @@ public interface GameMessage extends Messages {
 	String logoutPanelMessage();
 	@DefaultMessage("Yes")
 	String yes();
-	@DefaultMessage("Your Rank: {0}")
-	String yourRank(int rank);
+	@DefaultMessage("Your Rank: [{0}, {1}]")
+	String yourRank(int rankLow, int rankHigh);
 	@DefaultMessage("With Ai")
 	String withAi();
 	@DefaultMessage("Note: playing with AI does not update the state to server.")
 	String withAiNote();
+	@DefaultMessage("Friends")
+	String yourFriends();
+	@DefaultMessage("Your friend hasn''t installed this game, please send a request to invite him//her.")
+	String invationPanelMessage();
+	@DefaultMessage("Invite")
+	String invite();
+	@DefaultMessage("Cancle")
+	String cancle();
 }

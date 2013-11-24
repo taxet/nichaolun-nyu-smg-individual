@@ -25,14 +25,14 @@ public class DisconnectedHandler extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException{
-		ChannelService channelService = ChannelServiceFactory.getChannelService();
+		/*ChannelService channelService = ChannelServiceFactory.getChannelService();
 		ChannelPresence channelPresence = channelService.parsePresence(req);
 		
 		String userId = channelPresence.clientId();
 
 		Player player = ofy().load().type(Player.class).id(userId).now();
 		player.disconnect();
-		ofy().save().entity(player);
+		ofy().save().entity(player);*/
 	}
 
 }

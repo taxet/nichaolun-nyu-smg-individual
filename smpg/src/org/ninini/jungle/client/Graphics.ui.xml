@@ -53,6 +53,7 @@
         <g:HorizontalPanel>
             <g:cell width="350px" horizontalAlignment='ALIGN_LEFT'>
                 <g:VerticalPanel styleName="margin-left:0px;">
+                    <g:Image ui:field="avatar"/>
                     <g:Label ui:field="whoseTurn"/>
                     <g:Label ui:field="loginMessage"/>
                     <g:Label ui:field="yourRank"/>
@@ -61,11 +62,14 @@
                     <g:Label ui:field="gameDate"/>
                     <g:TextBox ui:field="oppoEmail" />
                     <g:HorizontalPanel>
-                        <g:Button ui:field="quickStart"/>
-                        <g:Button ui:field="findOpponent"/>
+                        <!-- g:Button ui:field="quickStart"/ -->
+                        <!-- g:Button ui:field="findOpponent"/ -->
                         <g:Button ui:field="playWithAi"/>
                     </g:HorizontalPanel>
-                    <g:Button ui:field="loginout"/>
+                    <g:HorizontalPanel ui:field="loginout"></g:HorizontalPanel>
+                    <!--  g:Button ui:field="loginout"/ -->
+                    <g:Button ui:field="invite" />
+                    <g:Label ui:field="gameStatus" styleName="{css.whiteText}" text="" />
                 </g:VerticalPanel>
             </g:cell>
             <g:cell>
@@ -75,16 +79,20 @@
             </g:cell>
             <g:cell width="350px">
                 <g:VerticalPanel>
+                    <!--  
                     <g:Label styleName="{css.subTitle}" ui:field="playersListTitle" />
                     <g:ListBox width="350px" visibleItemCount="7" ui:field="playersOnline" />
                     
                     <g:Label styleName="{css.subTitle}" ui:field="matchListTitle" />
                     <g:ListBox width="350px" visibleItemCount="10" ui:field="matchesList" />
-                    <g:Button ui:field="loadGameButton" />
+                    <g:Button ui:field="loadGameButton" />-->
+                    <g:Label styleName="{css.subTitle}" ui:field="friend" />
+                    <g:ScrollPanel width="350px" height="700px">
+                        <g:VerticalPanel ui:field="friendList"/>
+                    </g:ScrollPanel>
                 </g:VerticalPanel>
             </g:cell>
         </g:HorizontalPanel>
-        
-        <g:Label ui:field="gameStatus" styleName="{css.whiteText}" text="" />
+        <g:HorizontalPanel ui:field="likeButton"></g:HorizontalPanel>
     </g:HTMLPanel>
 </ui:UiBinder>

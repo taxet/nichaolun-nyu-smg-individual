@@ -33,6 +33,23 @@ public class LoginServiceImpl extends XsrfProtectedServiceServlet implements Log
 	private ChannelService channelService = ChannelServiceFactory.getChannelService();
 
 	@Override
+	public String fbLogin(LoginInfo fbInfo) {
+		//add to userlist
+		if (ofy().load().type(Player.class).id(fbInfo.getFbId()).now() == null) {
+			Player player = new Player(fbInfo.getFbId(), fbInfo.getName());
+			ofy().save().entities(player);
+		}else{
+			Player player = ofy().load().type(Player.class).id(fbInfo.getFbId()).now();
+			player.setNickName(fbInfo.getName());
+			player.connect();
+			ofy().save().entity(player);
+		}
+		
+		//return token
+		return channelService.createChannel(fbInfo.getFbId());
+	}
+
+	/*@Override
 	public LoginInfo login(String requestUrl) {
 		UserService userService = UserServiceFactory.getUserService();
 		User user = userService.getCurrentUser();
@@ -47,7 +64,7 @@ public class LoginServiceImpl extends XsrfProtectedServiceServlet implements Log
 			loginInfo.setToken(channelService.createChannel(loginInfo.getEmailAddress()));
 			//add to userlist
 			if (ofy().load().type(Player.class).id(loginInfo.getEmailAddress()).now() == null) {
-				Player player = new Player(loginInfo.getEmailAddress(), loginInfo.getNickname());
+				Player player = new Player(loginInfo.getEmailAddress(), loginInfo.getNickname(),'g');
 				ofy().save().entities(player);
 			}else{
 				Player player = ofy().load().type(Player.class).id(loginInfo.getEmailAddress()).now();
@@ -66,10 +83,10 @@ public class LoginServiceImpl extends XsrfProtectedServiceServlet implements Log
 		List<Player> playerList = ofy().load().type(Player.class).list();
 		Set<Player> onlineList = new HashSet<Player>();
 		for(Player p : playerList){
-			if(p.isOnline() && !p.getEmail().equals(myEmail))
+			if(p.isOnline() && !p.getUID().equals(myEmail))
 				onlineList.add(p);
 		}
 		return onlineList;
-	}
+	}*/
 
 }

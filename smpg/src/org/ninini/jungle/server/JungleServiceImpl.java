@@ -8,8 +8,10 @@ import java.util.Random;
 import java.util.Set;
 
 import org.ninini.jungle.client.JungleService;
+import org.ninini.jungle.shared.FbInfo;
 import org.ninini.jungle.shared.Match;
 import org.ninini.jungle.shared.Player;
+import org.ninini.jungle.shared.Ranking;
 
 import com.google.appengine.api.channel.ChannelMessage;
 import com.google.appengine.api.channel.ChannelService;
@@ -55,6 +57,7 @@ public class JungleServiceImpl  extends XsrfProtectedServiceServlet implements J
 			red.updateRank(black.getRank(), false, currTime);
 			black.updateRank(black.getRank(), true, currTime);		
 		}
+		red.matchesOver(match);black.matchesOver(match);
 		red.update();black.update();
 		ofy().save().entity(red);
 		ofy().save().entity(black);
@@ -103,8 +106,8 @@ public class JungleServiceImpl  extends XsrfProtectedServiceServlet implements J
 			}
 			final Match match = new Match(matchId, redPlayer, blackPlayer, "r0020661571117524622264068000862660");
 			//add to ofy
-			player1.addMatches(matchId);
-			player2.addMatches(matchId);
+			player1.addMatches(match);
+			player2.addMatches(match);
 			ofy().transact(new Work<Void>(){
 
 				@Override
@@ -139,8 +142,8 @@ public class JungleServiceImpl  extends XsrfProtectedServiceServlet implements J
 		final Match match;
 		match = new Match(matchId, redPlayer, blackPlayer, "r0020661571117524622264068000862660");
 		//add to ofy
-		player1.addMatches(matchId);
-		player2.addMatches(matchId);
+		player1.addMatches(match);
+		player2.addMatches(match);
 		ofy().transact(new Work<Void>(){
 
 			@Override
@@ -176,8 +179,43 @@ public class JungleServiceImpl  extends XsrfProtectedServiceServlet implements J
 	}
 
 	@Override
-	public Integer getRank(String userId) {
-		return ofy().load().type(Player.class).id(userId).now().getRank();
+	public Integer[] getRank(String userId) {
+		Integer[] result = new Integer[2];
+		result[0] = Ranking.DEFAULT_RANK;
+		result[1] = Ranking.DEFAULT_RD;
+		if(ofy().load().type(Player.class).id(userId).now() != null){
+			result[0] = ofy().load().type(Player.class).id(userId).now().getRank();
+			result[1] = ofy().load().type(Player.class).id(userId).now().getRD();
+		}
+		return result;
+	}
+
+	@Override
+	public Set<FbInfo> getRanks(Set<FbInfo> fbInfos) {
+		Set<FbInfo> result = new HashSet<FbInfo>();
+		for(FbInfo friendInfo : fbInfos){
+			FbInfo friend = new FbInfo(friendInfo.getFbId(), friendInfo.getName());
+			Integer[] ranks = getRank(friendInfo.getFbId());
+			friend.setRankRd(ranks[0], ranks[1]);
+			result.add(friend);
+		}
+		return result;
+	}
+
+	@Override
+	public Match fbPlay(String id, String oppoId) {
+		Player player = ofy().load().type(Player.class).id(id).now();
+		Player oppo = ofy().load().type(Player.class).id(oppoId).now();
+		if(oppo ==null){// opponent does not have id
+			return null;
+		}
+		if(player.getFriendMatches().containsKey(oppoId)){//load match
+			Match match = loadMatch(id, player.getFriendMatches().get("oppoId"));
+			return match;
+		}else{//new game
+			Match match = findingGameWith(id, oppoId);
+			return match;
+		}
 	}
 
 }
