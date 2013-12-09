@@ -1,0 +1,258 @@
+<html>
+	<head><title>leve7</title></head>
+	<body onload="init();">
+		<canvas id="canvas" width="928" height="522" style="background-color:#7777ff;" />
+	</body>
+	<script type="text/javascript" src="Box2dWeb-2.1.a.3.min.js"></script>
+	<script type="text/javascript">
+		function init(){
+			var scale = 58;
+			var worldWidth = document.getElementById("canvas").width / scale
+			var worldHeight = document.getElementById("canvas").height / scale
+			var b2Vec2 = Box2D.Common.Math.b2Vec2
+				, b2AABB = Box2D.Collision.b2AABB
+				, b2BodyDef = Box2D.Dynamics.b2BodyDef
+				, b2Body = Box2D.Dynamics.b2Body
+				, b2FixtureDef = Box2D.Dynamics.b2FixtureDef
+				, b2Fixture = Box2D.Dynamics.b2Fixture
+				, b2World = Box2D.Dynamics.b2World
+				, b2MassData = Box2D.Collision.Shapes.b2MassData
+				, b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape
+				, b2CircleShape = Box2D.Collision.Shapes.b2CircleShape
+				, b2DebugDraw = Box2D.Dynamics.b2DebugDraw
+				, b2MouseJointDef =  Box2D.Dynamics.Joints.b2MouseJointDef
+				, b2RevoluteJointDef = Box2D.Dynamics.Joints.b2RevoluteJointDef
+			;
+			
+			var world = new b2World(
+				new b2Vec2(0, 9) //gravity
+				, true //allow sleep
+			);
+			
+			var fixRock = new b2FixtureDef;
+			fixRock.density = 1.0;
+			fixRock.friction = 0.5;
+			fixRock.restitution = 0.2;
+			
+			var bodyDef = new b2BodyDef;
+			var joint = new b2RevoluteJointDef;
+			
+			//create basket
+			bodyDef.type = b2Body.b2_dynamicBody;
+			bodyDef.position.Set(2, 1);
+			var basket = world.CreateBody(bodyDef);
+			var basketVertice = [[{x:-1.0,y:-1.0},{x:-0.8,y:-1.0},{x:-0.8,y:1.0},{x:-1.0,y:1.0}], 
+					[{x:-1.0,y:1.0},{x:-1.0,y:0.8},{x:1.0,y:0.8},{x:1.0,y:1.0}],
+					[{x:1.0,y:1.0},{x:0.8,y:1.0},{x:0.8,y:-1.0},{x:1.0,y:-1.0}]];
+			for(var j = 0; j < basketVertice.length; j++){
+				var points = [];
+				basketVertex = basketVertice[j];
+				for(var i = 0; i < basketVertex.length ; i++){
+					var vec = new b2Vec2(basketVertex[i].x, basketVertex[i].y);
+					points[i] = vec;
+				}
+				fixRock.shape = new b2PolygonShape;
+				fixRock.shape.SetAsArray(points, points.length);
+				basket.CreateFixture(fixRock);
+			}
+			
+			//right wall
+			bodyDef.type = b2Body.b2_staticBody;
+			bodyDef.position.Set(worldWidth, worldHeight / 2);
+			var rWall = world.CreateBody(bodyDef);
+			fixRock.shape = new b2PolygonShape();
+			fixRock.shape.SetAsBox(0.1, worldHeight / 2);
+			rWall.CreateFixture(fixRock);
+			//left wall
+			bodyDef.type = b2Body.b2_staticBody;
+			bodyDef.position.Set(0, worldHeight / 2);
+			var lWall = world.CreateBody(bodyDef);
+			fixRock.shape = new b2PolygonShape();
+			fixRock.shape.SetAsBox(0.1, worldHeight / 2);
+			lWall.CreateFixture(fixRock);		
+			//top wall
+			bodyDef.type = b2Body.b2_staticBody;
+			bodyDef.position.Set(worldWidth/2, 0);
+			var tWall = world.CreateBody(bodyDef);
+			fixRock.shape = new b2PolygonShape();
+			fixRock.shape.SetAsBox(worldWidth/2, 0.1);
+			tWall.CreateFixture(fixRock);		
+			//bottom wall
+			bodyDef.type = b2Body.b2_staticBody;
+			bodyDef.position.Set(worldWidth/2, worldHeight);
+			var bWall = world.CreateBody(bodyDef);
+			fixRock.shape = new b2PolygonShape();
+			fixRock.shape.SetAsBox(worldWidth/2, 0.1);
+			bWall.CreateFixture(fixRock);	
+			
+			//eggs
+			eggs = [];
+			for(var i = 0; i < 3; i++){
+				bodyDef.type = b2Body.b2_staticBody;
+				bodyDef.position.Set(8-0.675+i*0.675,4.5+0.675-i*0.675);
+				bodyDef.angle = 0;
+				eggs[i] = world.CreateBody(bodyDef);
+				fixRock.shape = new b2CircleShape(0.125);
+				eggs[i].CreateFixture(fixRock);
+			}
+			
+			//setup debug draw
+			var debugDraw = new b2DebugDraw();
+			debugDraw.SetSprite(document.getElementById("canvas").getContext("2d"));
+			debugDraw.SetDrawScale(scale);
+			debugDraw.SetFillAlpha(0.5);
+			debugDraw.SetLineThickness(1.0);
+			debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
+			world.SetDebugDraw(debugDraw);
+
+			window.setInterval(update, 1000 / 60);
+			
+			//mouse
+			var mouseX, mouseY, mousePVec, isMouseDown, selectedBody, mouseJoint;
+			var fromX, formY, toX, toY;
+			var canvasPosition = getElementPosition(document.getElementById("canvas"));
+			
+			document.addEventListener("mousedown", function(e) {
+				toX = undefined;
+				toY = undefined;
+				isMouseDown = true;
+				handleMouseMove(e);
+				fromX = mouseX;
+				fromY = mouseY;
+				document.addEventListener("mousemove", handleMouseMove, true);
+			}, true);
+         
+			document.addEventListener("mouseup", function() {
+				document.removeEventListener("mousemove", handleMouseMove, true);
+				isMouseDown = false;
+				mouseX = undefined;
+				mouseY = undefined;
+				fromX = undefined;
+				fromY = undefined;
+			}, true);
+			
+			document.addEventListener("touchstart", function(e) {
+				toX = undefined;
+				toY = undefined;
+				isMouseDown = true;
+				handleMouseMove(e);
+				fromX = mouseX;
+				fromY = mouseY;
+				document.addEventListener("touchmove", handleMouseMove, true);
+			}, true);
+			document.addEventListener("touchend", function() {
+				document.removeEventListener("touchmove", handleMouseMove, true);
+				isMouseDown = false;
+				mouseX = undefined;
+				mouseY = undefined;
+				fromX = undefined;
+				fromY = undefined;
+			}, true);
+         
+			function handleMouseMove(e) {
+				mouseX = (e.clientX - canvasPosition.x) / scale;
+				mouseY = (e.clientY - canvasPosition.y) / scale;
+				toX = mouseX;
+				toY = mouseY;
+			};
+			
+			function getBodyAtMouse(){
+				mousePVec = new b2Vec2(mouseX, mouseY);
+				var aabb = new b2AABB();
+				aabb.lowerBound.Set(mouseX - 0.001, mouseY - 0.001);
+				aabb.upperBound.Set(mouseX + 0.001, mouseY + 0.001);
+				selectedBody = null;
+				
+				function getBodyCallback(fixture){
+					if(fixture.GetBody().GetType() != b2Body.b2_staticBody) {
+						if(fixture.GetShape().TestPoint(fixture.GetBody().GetTransform(), mousePVec)) {
+							selectedBody = fixture.GetBody();
+							return false;
+						}
+					}
+					return true;
+				}
+				
+				world.QueryAABB(getBodyCallback, aabb);
+				return selectedBody;
+			};
+			
+			function update() {
+				//updateMouseWorld();
+				updateGravity();
+				world.Step(
+					1 / 60   //frame-rate
+					, 10       //velocity iterations
+					, 10       //position iterations
+				);
+				world.DrawDebugData();
+				world.ClearForces();
+			};
+			
+			function updateGravity(){
+				if(fromX && toX){
+					//vector
+					var vec = new b2Vec2(toX - fromX, toY - fromY);
+					//change gravity
+					world.SetGravity(vec);
+				}
+			}
+			
+			function updateMouseWorld(){
+				if(isMouseDown && (!mouseJoint)) {
+					var body = getBodyAtMouse();
+					if(body && !isEgg(body)) {
+						var md = new b2MouseJointDef();
+						md.bodyA = world.GetGroundBody();
+						md.bodyB = body;
+						md.target.Set(mouseX, mouseY);
+						md.collideConnected = true;
+						md.maxForce = 300.0 * body.GetMass();
+						mouseJoint = world.CreateJoint(md);
+						body.SetAwake(true);
+					}
+				}
+            
+				if(mouseJoint) {
+					if(isMouseDown) {
+						mouseJoint.SetTarget(new b2Vec2(mouseX, mouseY));
+					} else {
+						world.DestroyJoint(mouseJoint);
+						mouseJoint = null;
+					}
+				}
+			};
+			
+			function isEgg(body){
+				flag = false;
+				for(var i = 0; i < eggs.length; i++){
+					if(body == eggs[i]) flag = true;
+				}
+				return flag;
+			};
+			
+			//helpers
+         
+			//http://js-tut.aardon.de/js-tut/tutorial/position.html
+			function getElementPosition(element) {
+				var elem=element, tagname="", x=0, y=0;
+           
+				while((typeof(elem) == "object") && (typeof(elem.tagName) != "undefined")) {
+					y += elem.offsetTop;
+					x += elem.offsetLeft;
+					tagname = elem.tagName.toUpperCase();
+
+					if(tagname == "BODY")
+						elem=0;
+
+					if(typeof(elem) == "object") {
+						if(typeof(elem.offsetParent) == "object")
+							elem = elem.offsetParent;
+					}
+				}
+
+				return {x: x, y: y};
+			};
+		};
+	</script>
+</html>
